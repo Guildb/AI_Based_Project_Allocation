@@ -1,12 +1,11 @@
 from flask import Flask, request, jsonify, make_response 
-import bcrypt
 from database import *
 from flask_cors import CORS
 from flask_mail import Mail
 import os 
 from dotenv import load_dotenv
 from routes import configure_routes
-
+import bcrypt
 
 load_dotenv()
 
@@ -19,13 +18,6 @@ app = Flask(__name__)
 CORS(app)
 
 configure_routes(app)
-@app.route('/message', methods=['GET'])
-def get_message():
-    return jsonify({'message': 'Hello, World!'})
-
-@app.route('/database', methods=['GET']) ## checking if database is connecting
-def get_database():
-    return test_db_connection()
 
 # Calling the function of the create table to ensure that database is created on startup 
 with app.app_context():
@@ -36,7 +28,6 @@ with app.app_context():
     create_table_students_if_not_exists()
     create_table_tutor_expertise_if_not_exists()
     create_table_projects_if_not_exists()
-    insert_default_data()
 
 ## Code to get all tables apis
 @app.route('/users', methods=['GET'])
@@ -50,10 +41,11 @@ def get_users():
                 for row in rows:
                     user = {
                         'id': row[0],
-                        'name': row[1],
-                        'email': row[2],
-                        'password': row[3],
-                        'type': row[4]
+                        'firstName': row[1],
+                        'lastName': row[2],
+                        'email': row[3],
+                        'password': row[4],
+                        'type': row[5]
                     }
                     users.append(user)
                 return jsonify(users), 200

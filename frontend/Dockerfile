@@ -4,7 +4,6 @@ FROM node:18 AS build
 # Set working directory
 WORKDIR /app
 
-
 # Copy package.json and package-lock.json to install dependencies
 COPY package*.json ./
 

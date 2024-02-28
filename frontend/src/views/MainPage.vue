@@ -6,7 +6,8 @@
       :class="{ 'opacity-100': isAnimated }"
     >
       <h1 class="text-4xl font-bold mb-4 text-slate-700">Welcome</h1>
-      <p class="text-lg mb-6 text-slate-700">Come find your ideal tutor</p>
+      <p class="text-lg mb-6 text-slate-700">This website is an AI-based project allocation, you will need to have an account in order to use this service.</p>
+      <p class="text-lg mb-6 text-slate-700">If you do not have a project idea yet you will be able to see the projects proposed by the tutors</p>
       <div class="space-x-4 mt-6">
         <router-link
           to="/login"

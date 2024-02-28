@@ -4,7 +4,6 @@ import jwt
 import datetime
 import logging
 import os
-import bcrypt
 from dotenv import load_dotenv
 
 logger = logging.getLogger(__name__) 
@@ -42,7 +41,8 @@ def create_table_users_if_not_exists():
                     cur.execute("""
                         CREATE TABLE "users" (
                             id SERIAL PRIMARY KEY,
-                            name VARCHAR(255) NOT NULL,
+                            firstName VARCHAR(255) NOT NULL,
+                            lastName VARCHAR(255) NOT NULL,
                             email VARCHAR(255) NOT NULL UNIQUE,
                             password VARCHAR(255) NOT NULL,
                             type VARCHAR(255) NOT NULL
@@ -201,35 +201,32 @@ def create_table_projects_if_not_exists():
     finally:
             DBPool.get_instance().putconn(conn)
 
-def store_user_in_database(hashed_name, hashed_email, hashed_password, type):
+def store_user_in_database(firstName, lastName, email, hashed_password, typeIn):
     try:
         with DBPool.get_instance().getconn() as conn:
             with conn.cursor() as cur:
                 try:
                     cur.execute("""
-                        INSERT INTO "users" (name, email, password, type)
-                        VALUES (%s, %s, %s, %s)
-                    """, (hashed_name, hashed_email, hashed_password, type))
+                        INSERT INTO "users" (firstName, lastName, email, password, type)
+                        VALUES (%s, %s, %s, %s, %s)
+                    """, (firstName, lastName, email, hashed_password, typeIn))
                     conn.commit()
-                    print("User stored successfully")
-                    return "User stored successfully."
+                    return None  # User stored successfully
                 except psycopg2.errors.UniqueViolation as e:
                     logger.error("Duplicate email address", exc_info=True)
-                    return "Failed to insert user: Email address already exists.", 409
+                    return "Email address already exists.", 409
                 except psycopg2.Error as e:
-                    logger.error(f"Failed to insert user: {e}", exc_info=True)  # Log the error with stack trace
-                    # Rollback the transaction on error
-                    conn.rollback() 
-                    return f"Failed to insert user:", 500
+                    logger.error(f"Failed to insert user: {e}", exc_info=True)
+                    conn.rollback()  # Rollback the transaction on error
+                    return "Failed to insert user.", 500
                 except Exception as e:
-                    logger.exception(f"Unexpected error: {e}")  # Log unexpected errors with full context 
-                    # Rollback the transaction on error
-                    conn.rollback() 
-                    return f"Unexpected error: {e}", 500
+                    logger.exception(f"Unexpected error: {e}")
+                    conn.rollback()  # Rollback the transaction on error
+                    return "Unexpected error.", 500
     except psycopg2.Error as e:
-        return f"Unable to add user: {e}"
+        return f"Unable to add user: {e}", 500
     finally:
-            DBPool.get_instance().putconn(conn)
+        DBPool.get_instance().putconn(conn)
 
 def store_areas_in_database(nameIn):
     try:
