@@ -1,0 +1,42 @@
+version: '3'
+services:
+  postgresql:
+    container_name: ai-based-project-allocation-postgresql
+    image: postgres:latest 
+    environment: 
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ai-based-project-allocation
+    ports:
+     - "5432:5432"
+    volumes:
+      - data:/var/lib/postgresql/data
+
+  flask:
+    container_name: ai-based-project-allocation-flask
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:  
+      - "5000:5000"
+    depends_on:
+      - postgresql
+    environment:
+      - FLASK_APP=app.py
+      - FLASK_ENV=development
+      - DATABASE_URL=postgresql://postgres:postgres@postgresql:5432/ai-based-project-allocation
+
+  
+  vuejs:
+    container_name: ai-based-project-allocation-vuejs
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:  
+      - "8080:8080"
+    depends_on:
+      - flask
+
+
+volumes: 
+  data:
