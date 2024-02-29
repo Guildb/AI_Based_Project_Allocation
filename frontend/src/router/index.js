@@ -17,6 +17,11 @@ const routes = [
     name: "Signup",
     component: () => import("../views/Signup.vue"),
   },
+  {
+    path: "/table",
+    name: "Table",
+    component: () => import("../views/Table.vue"),
+  },
 ];
 
 const router = createRouter({
