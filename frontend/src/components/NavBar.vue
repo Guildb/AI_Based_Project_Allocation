@@ -4,13 +4,24 @@
   >
     <ul class="flex justify-center space-x-4">
       <li>
-        <router-link to="/signinup" v-slot="{ isActive }">
+        <router-link to="/" v-slot="{ isActive }">
           <a
             :class="[
               'text-slate-700 hover:text-blue-500 font-semibold',
               isActive ? 'text-blue-700' : '',
             ]"
             >Dashboard</a
+          >
+        </router-link>
+      </li>
+      <li>
+        <router-link to="/table" v-slot="{ isActive }">
+          <a
+            :class="[
+              'text-slate-700 hover:text-blue-500 font-semibold',
+              isActive ? 'text-blue-700' : '',
+            ]"
+            >Table</a
           >
         </router-link>
       </li>
