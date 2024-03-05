@@ -1,11 +1,15 @@
 from flask import Flask, request, jsonify, make_response 
 from database import *
 from flask_cors import CORS
-from flask_mail import Mail
 import os 
 from dotenv import load_dotenv
 from routes import configure_routes
 import bcrypt
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.DEBUG)
+
 
 load_dotenv()
 
@@ -52,7 +56,80 @@ def get_users():
     except Exception as e:
         logger.exception(f"Error fetching users: {e}")
         return jsonify({'error': 'Internal Server Error'}), 500
+        
+@app.route('/students', methods=['GET'])
+def get_students():
+    try:
+        with DBPool.get_instance().getconn() as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    SELECT u.id, u.firstName, u.lastName, u.email, u.password, u.type, COALESCE(s.student_number, 'NaN') AS student_number
+                    FROM "users" u
+                    LEFT JOIN "students" s ON u.id = s.user_id
+                    WHERE u.type = 'student'
+                """)
+                rows = cur.fetchall()
+                users = []
+                for row in rows:
+                    user = {
+                        'id': row[0],
+                        'firstName': row[1],  
+                        'lastName': row[2],   
+                        'email': row[3],
+                        'type': row[4],
+                        'student_number': row[5]  
+                    }
+                    users.append(user)
+                return jsonify(users), 200
+    except Exception as e:
+        app.logger.exception(f"Error fetching students: {e}")
+        return jsonify({'error': 'Internal Server Error'}), 500
  
+@app.route('/tutors', methods=['GET'])
+def get_tutors():
+    try:
+        tutors = []
+        with DBPool.get_instance().getconn() as conn:
+            with conn.cursor() as cur:
+                # Join users, tutors, and areas to fetch basic tutor info and area name
+                cur.execute("""
+                    SELECT u.id, t.id, u.firstName, u.lastName, u.email, u.password, u.type, COALESCE(t.slots, '0') AS slots, COALESCE(a.name, 'NaN') AS areaName, COALESCE(a.id, 'NaN') AS areaId
+                    FROM "users" u
+                    LEFT JOIN "tutors" t ON u.id = t.user_id
+                    LEFT JOIN "areas" a ON t.area_id = a.id
+                    WHERE u.type = 'tutor'
+                """)
+                tutor_rows = cur.fetchall()
+                
+                # Fetch expertises for each tutor
+                for row in tutor_rows:
+                    cur.execute("""
+                        SELECT  
+                        FROM "tutor_expertise" te
+                        JOIN "expertises" e ON te.expertise_id = e.id
+                        WHERE te.tutor_id = %s
+                    """, (row[1]))
+                    expertises = [expertise[0] for expertise in cur.fetchall()]
+                    
+                    tutors.append({
+                        'id': row[0],
+                        'tutor_id': row[1],
+                        'firstName': row[2],  
+                        'lastName': row[3],   
+                        'email': row[4],
+                        'type': row[5],
+                        'slots': row[6],
+                        'areaName': row[7],
+                        'areaId': row[8],
+                        'expertises': expertises
+                        
+                    })
+                
+                return jsonify(tutors), 200
+    except Exception as e:
+        logger.exception(f"Error fetching tutors: {e}")
+        return jsonify({'error': 'Internal Server Error'}), 500
+
 @app.route('/areas', methods=['GET'])
 def get_areas():
     try:
@@ -91,47 +168,6 @@ def get_expertises():
                 return jsonify(expertises), 200
     except Exception as e:
         logger.exception(f"Error fetching expertises: {e}")
-        return jsonify({'error': 'Internal Server Error'}), 500
- 
-@app.route('/tutors', methods=['GET'])
-def get_tutors():
-    try:
-        with DBPool.get_instance().getconn() as conn:
-            with conn.cursor() as cur:
-                cur.execute("SELECT * FROM \"tutors\"")
-                rows = cur.fetchall()
-                tutors = []
-                for row in rows:
-                    tutor = {
-                        'id': row[0],
-                        'slots': row[1],
-                        'user_id': row[2],
-                        'area_id': row[3]
-                    }
-                    tutors.append(tutor)
-                return jsonify(tutors), 200
-    except Exception as e:
-        logger.exception(f"Error fetching tutors: {e}")
-        return jsonify({'error': 'Internal Server Error'}), 500
-
-@app.route('/students', methods=['GET'])
-def get_students():
-    try:
-        with DBPool.get_instance().getconn() as conn:
-            with conn.cursor() as cur:
-                cur.execute("SELECT * FROM \"students\"")
-                rows = cur.fetchall()
-                students = []
-                for row in rows:
-                    student = {
-                        'id': row[0],
-                        'user_id': row[1],
-                        'student_number': row[2]
-                    }
-                    students.append(student)
-                return jsonify(students), 200
-    except Exception as e:
-        logger.exception(f"Error fetching students: {e}")
         return jsonify({'error': 'Internal Server Error'}), 500
 
 @app.route('/tutor_expertise', methods=['GET'])
@@ -179,6 +215,30 @@ def get_projects():
         logger.exception(f"Error fetching projects: {e}")
         return jsonify({'error': 'Internal Server Error'}), 500
  
+@app.route('/get_student', methods=['POST'])
+def get_student():
+    data = request.get_json()
+    id = data.get('id')
+
+    try:
+        with DBPool.get_instance().getconn() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT * FROM students WHERE user_id = %s", (id,))
+                rows = cur.fetchall()
+                students = []
+                for row in rows:
+                    student = {
+                        'id': row[0],
+                        'user_id': row[1],
+                        'student_number': row[2],
+                    }
+                    students.append(student)
+                return jsonify(students), 200
+    except Exception as e:
+        logger.exception(f"Error fetching projects: {e}")
+        return jsonify({'error': 'Internal Server Error'}), 500
+
+
 if __name__ == '__main__':
      # Initialize the database connection pool
     DBPool.get_instance()

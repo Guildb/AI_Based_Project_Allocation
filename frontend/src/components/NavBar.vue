@@ -15,13 +15,57 @@
         </router-link>
       </li>
       <li>
-        <router-link to="/table" v-slot="{ isActive }">
+        <router-link to="/students" v-slot="{ isActive }">
           <a
             :class="[
               'text-slate-700 hover:text-blue-500 font-semibold',
               isActive ? 'text-blue-700' : '',
             ]"
-            >Table</a
+            >Students</a
+          >
+        </router-link>
+      </li>
+      <li>
+        <router-link to="/tutors" v-slot="{ isActive }">
+          <a
+            :class="[
+              'text-slate-700 hover:text-blue-500 font-semibold',
+              isActive ? 'text-blue-700' : '',
+            ]"
+            >Tutors</a
+          >
+        </router-link>
+      </li>
+      <li>
+        <router-link to="/areas" v-slot="{ isActive }">
+          <a
+            :class="[
+              'text-slate-700 hover:text-blue-500 font-semibold',
+              isActive ? 'text-blue-700' : '',
+            ]"
+            >Areas</a
+          >
+        </router-link>
+      </li>
+      <li>
+        <router-link to="/expertises" v-slot="{ isActive }">
+          <a
+            :class="[
+              'text-slate-700 hover:text-blue-500 font-semibold',
+              isActive ? 'text-blue-700' : '',
+            ]"
+            >Expertises</a
+          >
+        </router-link>
+      </li>
+      <li>
+        <router-link to="/projects" v-slot="{ isActive }">
+          <a
+            :class="[
+              'text-slate-700 hover:text-blue-500 font-semibold',
+              isActive ? 'text-blue-700' : '',
+            ]"
+            >Projects</a
           >
         </router-link>
       </li>

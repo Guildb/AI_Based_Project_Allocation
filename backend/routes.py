@@ -24,7 +24,7 @@ def configure_routes(app):
                 return jsonify({'error': 'All fields must be filled'}), 400
 
             hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
-            store_user_result = store_user_in_database(firstName, lastName, email, password, "student")
+            store_user_result = store_user_in_database(firstName, lastName, email, password, 'student')
             
             if store_user_result:
                 error_message, status_code = store_user_result
@@ -70,3 +70,70 @@ def configure_routes(app):
             return jsonify({'error': str(e)}), 500
         finally:
             DBPool.get_instance().putconn(conn)
+
+    @app.route('/changeUserType', methods=['POST'])
+    def change_user_type():
+        data = request.get_json()
+        userId = data.get('userId')
+        newType = data.get('newType')
+
+        try:
+            success, message = change_user_type(userId, newType)
+        
+            if success:
+                return jsonify({'message': message}), 200
+            else:
+                return jsonify({'error': message}), 404 if message == "User not found" else 500
+        except Exception as e:
+            # Log the error here if you have logging set up
+            return jsonify({'error': f"Unexpected error: {e}"}), 500
+
+    @app.route('/addArea', methods=['POST', 'OPTIONS'])
+    def addArea():
+        if request.method == 'OPTIONS':
+            return _build_cors_preflight_response()
+        
+        try:
+            data = request.get_json()
+            name = data.get('name')
+
+            if not ([name]):
+                return jsonify({'error': 'All fields must be filled'}), 400
+
+            store_area_result = store_areas_in_database(name)
+            
+            if store_area_result:
+                error_message, status_code = store_area_result
+                return jsonify({'error': error_message}), status_code
+
+            return jsonify({'message': 'Area created successfully'}), 201
+        except Exception as e:
+            logger.exception(f"Exception in signup: {e}")
+            return jsonify({'error': 'Failed to add Area'}), 500
+
+    @app.route('/addExpertise', methods=['POST', 'OPTIONS'])
+    def addExpertise():
+        if request.method == 'OPTIONS':
+            return _build_cors_preflight_response()
+        
+        try:
+            data = request.get_json()
+            name = data.get('name')
+            acronym = data.get('acronym')
+            areaId = data.get('area_id')
+
+            if not all([name, acronym, areaId]):
+                return jsonify({'error': 'All fields must be filled'}), 400
+
+            store_expertise_result = store_expertises_in_database(name,acronym,areaId)
+            
+            if store_expertise_result:
+                error_message, status_code = store_expertise_result
+                return jsonify({'error': error_message}), status_code
+
+            return jsonify({'message': 'Expertise created successfully'}), 201
+        except Exception as e:
+            logger.exception(f"Exception in signup: {e}")
+            return jsonify({'error': 'Failed to add Expertise'}), 500
+
+

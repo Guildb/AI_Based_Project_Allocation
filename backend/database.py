@@ -394,6 +394,44 @@ def store_projects_in_database(name, description, student_id, tutor_id, area_id,
     finally:
             DBPool.get_instance().putconn(conn)
        
+def change_user_type(userId, newType):
+    try:
+        with DBPool.get_instance().getconn() as conn:
+            with conn.cursor() as cur:
+                try:
+                    cur.execute("""
+                        UPDATE "users"
+                        SET type = %s
+                        WHERE id = %s;
+                    """, (newType, userId))
+                    conn.commit()
+
+                    if cur.rowcount == 0:
+                        return False, "User not found"
+            
+                    return True, "User type updated successfully"
+
+                except psycopg2.Error as e:
+                    logger.error(f"Failed to change type: {e}", exc_info=True)  # Log the error with stack trace
+                    # Rollback the transaction on error
+                    conn.rollback() 
+                    return f"Failed to change type:", 500
+                except Exception as e:
+                    logger.exception(f"Unexpected error: {e}")  # Log unexpected errors with full context 
+                    # Rollback the transaction on error
+                    conn.rollback() 
+                    return f"Unexpected error: {e}", 500
+    except psycopg2.Error as e:
+        return f"Unable to create link: {e}"
+    finally:
+            DBPool.get_instance().putconn(conn)
+
+
+
+
+
+
+
 def insert_default_data():
     store_user_in_database("defaultuser", "defaultuser","defaultuser","defaultuser")
     store_areas_in_database("defaultarea")
