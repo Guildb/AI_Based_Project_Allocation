@@ -1,17 +1,11 @@
 <template>
-  <link
-    href="https://cdn.datatables.net/v/dt/dt-2.0.1/b-3.0.0/datatables.min.css"
-    rel="stylesheet"
-  />
-
-  <script src="https://cdn.datatables.net/v/dt/dt-2.0.1/b-3.0.0/datatables.min.js"></script>
   <navbar />
   <div class="min-h-screen flex justify-center items-center p-4">
     <div
       class="w-full max-w-4xl bg-gray-200 bg-opacity-50 rounded-lg shadow-lg transition-opacity duration-700 ease-in"
       :class="{ 'opacity-100': isAnimated }"
     >
-    <button
+      <button
         @click="toggleInput"
         class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
       >
@@ -46,17 +40,9 @@
           placeholder="Area Name"
           class="bg-gray-200 text-gray-700 py-1 px-2 rounded w-full"
         />
-        <select
-          v-model="newArea"
-          class="bg-gray-200 text-gray-700 py-1 px-2 rounded"
-        >
-          <option v-for="area in areas" :key="area.id" :value="area.id">
-            {{ area.name }}
-          </option>
-        </select>
-        <div class="flex justify-end space-x-2">
+        <div class="flex justify-center space-x-2">
           <button
-            @click="addExpertise()"
+            @click="addArea()"
             class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
           >
             Save

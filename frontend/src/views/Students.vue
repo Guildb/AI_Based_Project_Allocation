@@ -1,10 +1,4 @@
 <template>
-  <link
-    href="https://cdn.datatables.net/v/dt/dt-2.0.1/b-3.0.0/datatables.min.css"
-    rel="stylesheet"
-  />
-
-  <script src="https://cdn.datatables.net/v/dt/dt-2.0.1/b-3.0.0/datatables.min.js"></script>
   <navbar />
   <div class="min-h-screen flex justify-center items-center p-4">
     <div
@@ -36,11 +30,11 @@
                     class="bg-gray-200 text-gray-700 py-1 px-2 rounded"
                   >
                     <option
-                      v-for="type in types"
-                      :key="type.value"
-                      :value="type.value"
+                      v-for="typeItem in typeList"
+                      :key="typeItem.value"
+                      :value="typeItem.value"
                     >
-                      {{ user.type }}
+                      {{ typeItem.name }}
                     </option>
                   </select>
                 </div>
@@ -80,7 +74,8 @@
 </template>
 
 <script>
-import DataTable from "datatables.net-dt";
+import $ from "jquery";
+import "datatables.net-dt";
 
 import navbar from "@/components/NavBar.vue";
 
@@ -93,7 +88,7 @@ export default {
     return {
       isAnimated: false,
       users: [],
-      types: [
+      typeList: [
         { value: "student", name: "Student" },
         { value: "tutor", name: "Tutor" },
         { value: "courseLeader", name: "Course Leader" },
@@ -103,7 +98,7 @@ export default {
   },
 
   methods: {
-    async changeUserType(userId, newType) {
+    async changeUserType(user) {
       try {
         const response = await fetch(
           `${process.env.VUE_APP_BACKEND_URL}/changeUserType`,
@@ -112,7 +107,7 @@ export default {
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({ userId, newType }),
+            body: JSON.stringify({ id: user.id, newType: user.newType }),
           }
         );
 
@@ -141,9 +136,7 @@ export default {
             newType: user.type,
           }));
           this.$nextTick(() => {
-            new DataTable("#myTable", {
-              responsive: true,
-            });
+            $("#myTable").DataTable();
           });
         })
         .catch((error) => {

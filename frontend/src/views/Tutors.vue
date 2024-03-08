@@ -1,10 +1,4 @@
 <template>
-  <link
-    href="https://cdn.datatables.net/v/dt/dt-2.0.1/b-3.0.0/datatables.min.css"
-    rel="stylesheet"
-  />
-
-  <script src="https://cdn.datatables.net/v/dt/dt-2.0.1/b-3.0.0/datatables.min.js"></script>
   <navbar />
   <div class="min-h-screen flex justify-center items-center p-4">
     <div
@@ -30,7 +24,25 @@
                 {{ user.firstName }} {{ user.lastName }}
               </td>
               <td class="px-4 py-2">{{ user.email }}</td>
-              <td class="px-4 py-2">{{ user.type }}</td>
+              <td class="px-4 py-2">
+                <div v-if="editingUserId === user.id">
+                  <select
+                    v-model="user.type"
+                    class="bg-gray-200 text-gray-700 py-1 px-2 rounded"
+                  >
+                    <option
+                      v-for="typeItem in typeList"
+                      :key="typeItem.value"
+                      :value="typeItem.value"
+                    >
+                      {{ typeItem.name }}
+                    </option>
+                  </select>
+                </div>
+                <div v-else>
+                  {{ user.type }}
+                </div>
+              </td>
               <td class="px-4 py-2">
                 <div v-if="editingUserId === user.id">
                   <input
@@ -59,27 +71,37 @@
                   </select>
                 </div>
                 <div v-else>
-                  {{ user.areaName }}
+                  {{
+                    user.expertises.length === 0
+                      ? "NaN"
+                      : getAreaName(user.areaId)
+                  }}
                 </div>
               </td>
               <td class="px-4 py-2">
                 <div v-if="editingUserId === user.id">
-                  <select
-                    v-model="user.expertises"
-                    multiple
-                    class="bg-gray-200 text-gray-700 py-1 px-2 rounded"
+                  <div
+                    v-for="expertise in expertises"
+                    :key="expertise.id"
+                    class="checkbox-group"
                   >
-                    <option
-                      v-for="expertise in expertises"
-                      :key="expertise.id"
+                    <input
+                      type="checkbox"
                       :value="expertise.id"
-                    >
-                      {{ expertise.name }}
-                    </option>
-                  </select>
+                      :id="'expertise-' + expertise.id"
+                      v-model="user.expertises"
+                    />
+                    <label :for="'expertise-' + expertise.id">{{
+                      expertise.name
+                    }}</label>
+                  </div>
                 </div>
                 <div v-else>
-                  {{ getExpertiseNames(user.expertises) }}
+                  {{
+                    user.expertises.length === 0
+                      ? "NaN"
+                      : getExpertiseNames(user.expertises)
+                  }}
                 </div>
               </td>
               <td class="px-4 py-2">
@@ -111,6 +133,42 @@
       </div>
     </div>
   </div>
+
+  <!-- User Editing Modal -->
+  <transition name="fade">
+    <div
+      v-if="showModal"
+      class="fixed inset-0 bg-gray-500 bg-opacity-75 flex justify-center items-center"
+    >
+      <div class="bg-white p-4 rounded-lg max-w-md w-full space-y-4">
+        <div class="text-lg font-semibold">Edit User</div>
+
+        <!-- Example input for editing the user's name -->
+        <input
+          v-model="editingUser.firstName"
+          placeholder="First Name"
+          class="bg-gray-200 text-gray-700 py-1 px-2 rounded w-full"
+        />
+
+        <!-- Include other fields as necessary, similar to the area editing example -->
+
+        <div class="flex justify-center space-x-2">
+          <button
+            @click="saveChanges()"
+            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          >
+            Save
+          </button>
+          <button
+            @click="cancelEdit()"
+            class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </transition>
 </template>
 
 <script>
@@ -129,15 +187,17 @@ export default {
       users: [],
       areas: [],
       expertises: [],
+      typeList: [
+        { value: "student", name: "Student" },
+        { value: "tutor", name: "Tutor" },
+        { value: "courseLeader", name: "Course Leader" },
+      ],
       editingUserId: null,
+      showModal: false,
     };
   },
 
   methods: {
-    getuserid(id) {
-      alert(`user id: ${id}`);
-    },
-
     fetchUsers() {
       fetch(`${process.env.VUE_APP_BACKEND_URL}/tutors`) // Adjust the URL as needed
         .then((response) => {
@@ -174,9 +234,13 @@ export default {
     },
     getExpertiseNames(expertiseIds) {
       return this.expertises
-        .filter((expertise) => expertiseIds.includes(expertise.id))
+        .filter((expertise) => expertiseIds.includes(expertise.expertise_id))
         .map((expertise) => expertise.name)
         .join(", "); // Combines all names into a string, separated by commas
+    },
+    getAreaName(areaId) {
+      const area = this.areas.find((area) => area.id === areaId);
+      return area ? area.name : "Not Found";
     },
     editUser(user) {
       if (this.editingUserId) {
@@ -192,10 +256,27 @@ export default {
     },
     async saveUser(user) {
       console.log(user);
-      // Implement saving logic, potentially sending a request to your backend
-      // After saving, clear editingUserId
-      this.editingUserId = null;
-      this.editingUser = {};
+      try {
+        const response = await fetch(
+          `${process.env.VUE_APP_BACKEND_URL}/changeTutors`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ user }),
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        this.editingUserId = null;
+        this.editingUser = {};
+        this.fetchUsers();
+      } catch (error) {
+        console.error("There was a problem updating the user:", error);
+      }
     },
     cancelEdit() {
       if (this.editingUserId) {
@@ -210,14 +291,34 @@ export default {
       this.editingUser = {};
       this.fetchUsers();
     },
+    editUser(user) {
+      this.editingUser = { ...user }; // Make a copy of the user to edit
+      this.showModal = true;
+    },
+    saveChanges() {
+      // Find the user in your users array and update their details
+      const index = this.users.findIndex((u) => u.id === this.editingUser.id);
+      if (index !== -1) {
+        this.users[index] = { ...this.editingUser };
+        // Optionally, make an API call to save the changes to the backend
+      }
+      this.closeModal();
+    },
+    cancelEdit() {
+      this.closeModal();
+    },
+    closeModal() {
+      this.showModal = false;
+      this.editingUser = null; // Reset the editing user
+    },
   },
   mounted() {
     setTimeout(() => {
       this.isAnimated = true;
     }, 100);
-    this.fetchUsers();
     this.fetchAreas();
     this.fetchExpertises();
+    this.fetchUsers();
   },
 };
 </script>
@@ -245,5 +346,12 @@ export default {
 .overflow-auto {
   scrollbar-width: thin; /* Makes scrollbar thinner */
   scrollbar-color: #888 #f0f0f0; /* Handle and track color */
+}
+
+.checkbox-group {
+  margin-bottom: 0.5rem;
+}
+input[type="checkbox"] {
+  margin-right: 0.5rem;
 }
 </style>

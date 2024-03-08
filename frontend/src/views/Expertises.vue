@@ -1,10 +1,4 @@
 <template>
-  <link
-    href="https://cdn.datatables.net/v/dt/dt-2.0.1/b-3.0.0/datatables.min.css"
-    rel="stylesheet"
-  />
-
-  <script src="https://cdn.datatables.net/v/dt/dt-2.0.1/b-3.0.0/datatables.min.js"></script>
   <navbar />
   <div class="min-h-screen flex justify-center items-center p-4">
     <div
@@ -29,7 +23,7 @@
           <tbody>
             <tr v-for="expertise in expertises" :key="expertise.id">
               <td class="px-4 py-2">{{ expertise.name }}</td>
-              <td class="px-4 py-2">{{ expertise.acronym }}</td>
+              <td class="px-4 py-2">{{ expertise.acronyms }}</td>
               <td>{{ findAreaName(expertise.area_id) }}</td>
             </tr>
           </tbody>
@@ -55,16 +49,17 @@
           placeholder="Expertise Acronym"
           class="bg-gray-200 text-gray-700 py-1 px-2 rounded"
         />
-        Expertise Area:
+
         <select
           v-model="newArea"
           class="bg-gray-200 text-gray-700 py-1 px-2 rounded"
         >
+          <option disabled value="">Select an Expertise Area</option>
           <option v-for="area in areas" :key="area.id" :value="area.id">
             {{ area.name }}
           </option>
         </select>
-        <div class="flex justify-end space-x-2">
+        <div class="flex justify-center space-x-2">
           <button
             @click="addExpertise()"
             class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
@@ -89,6 +84,7 @@
 </template>
 
 <script>
+// Import DataTables
 import DataTable from "datatables.net-dt";
 
 import navbar from "@/components/NavBar.vue";
@@ -112,44 +108,46 @@ export default {
 
   methods: {
     addExpertise() {
-      const expertiseName = this.newAreaName.trim();
+      const expertiseName = this.newName.trim();
       const expertiseAcronym = this.newAcronym.trim();
-      const areadId = this.newArea;
+      const areaId = this.newArea;
       if (!expertiseName) {
         alert("Expertise name is required.");
+        return;
       } else if (!expertiseAcronym) {
         alert("Expertise acronym is required.");
+        return;
       } else if (!areaId && areaId !== 0) {
         alert("Area ID is required.");
-      } else {
-        fetch(`${process.env.VUE_APP_BACKEND_URL}/addExpertise`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            name: expertiseName,
-            acronym: expertiseAcronym,
-            area_id: areadId,
-          }),
-        })
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error("Network response was not ok");
-            }
-            return response.json();
-          })
-          .then(() => {
-            this.showInput = false;
-            this.newName = "";
-            this.newAcronym = "";
-            this.newArea = null;
-            this.fetchAreas(); // Fetch areas again to update the list
-          })
-          .catch((error) => {
-            console.error("There was a problem adding the area:", error);
-          });
+        return;
       }
+      fetch(`${process.env.VUE_APP_BACKEND_URL}/addExpertise`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: expertiseName,
+          acronym: expertiseAcronym,
+          area_id: areaId,
+        }),
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Network response was not ok");
+          }
+          return response.json();
+        })
+        .then(() => {
+          this.showInput = false;
+          this.newName = "";
+          this.newAcronym = "";
+          this.newArea = null;
+          this.fetchAreas(); // Fetch areas again to update the list
+        })
+        .catch((error) => {
+          console.error("There was a problem adding the area:", error);
+        });
     },
     fetchAreas() {
       fetch(`${process.env.VUE_APP_BACKEND_URL}/areas`)
@@ -159,7 +157,7 @@ export default {
       console.log(this.areas);
     },
     fetchExpertises() {
-      fetch(`${process.env.VUE_APP_BACKEND_URL}/expertises`) // Adjust the URL as needed
+      fetch(`${process.env.VUE_APP_BACKEND_URL}/expertises`)
         .then((response) => {
           if (!response.ok) {
             throw new Error("Network response was not ok");
@@ -200,6 +198,7 @@ export default {
     setTimeout(() => {
       this.isAnimated = true;
     }, 100);
+    this.fetchExpertises();
     this.fetchAreas();
   },
 };

@@ -54,8 +54,11 @@ def get_users():
                     users.append(user)
                 return jsonify(users), 200
     except Exception as e:
-        logger.exception(f"Error fetching users: {e}")
+        logger.exception(f"Error fetching tutors: {e}")
         return jsonify({'error': 'Internal Server Error'}), 500
+    finally:
+        if conn:
+            DBPool.get_instance().putconn(conn)
         
 @app.route('/students', methods=['GET'])
 def get_students():
@@ -63,7 +66,7 @@ def get_students():
         with DBPool.get_instance().getconn() as conn:
             with conn.cursor() as cur:
                 cur.execute("""
-                    SELECT u.id, u.firstName, u.lastName, u.email, u.password, u.type, COALESCE(s.student_number, 'NaN') AS student_number
+                    SELECT u.id, u.firstName, u.lastName, u.email, u.type, COALESCE(s.student_number, 'NaN') AS student_number
                     FROM "users" u
                     LEFT JOIN "students" s ON u.id = s.user_id
                     WHERE u.type = 'student'
@@ -82,8 +85,11 @@ def get_students():
                     users.append(user)
                 return jsonify(users), 200
     except Exception as e:
-        app.logger.exception(f"Error fetching students: {e}")
+        logger.exception(f"Error fetching tutors: {e}")
         return jsonify({'error': 'Internal Server Error'}), 500
+    finally:
+        if conn:
+            DBPool.get_instance().putconn(conn)
  
 @app.route('/tutors', methods=['GET'])
 def get_tutors():
@@ -93,7 +99,7 @@ def get_tutors():
             with conn.cursor() as cur:
                 # Join users, tutors, and areas to fetch basic tutor info and area name
                 cur.execute("""
-                    SELECT u.id, t.id, u.firstName, u.lastName, u.email, u.password, u.type, COALESCE(t.slots, '0') AS slots, COALESCE(a.name, 'NaN') AS areaName, COALESCE(a.id, 'NaN') AS areaId
+                    SELECT u.id, t.id, u.firstName, u.lastName, u.email, u.type, COALESCE(t.slots, '0') AS slots, COALESCE(a.id, '0') AS areaId
                     FROM "users" u
                     LEFT JOIN "tutors" t ON u.id = t.user_id
                     LEFT JOIN "areas" a ON t.area_id = a.id
@@ -104,13 +110,17 @@ def get_tutors():
                 # Fetch expertises for each tutor
                 for row in tutor_rows:
                     cur.execute("""
-                        SELECT  
+                        SELECT *
                         FROM "tutor_expertise" te
-                        JOIN "expertises" e ON te.expertise_id = e.id
+                        LEFT JOIN "expertises" e ON te.expertise_id = e.id
                         WHERE te.tutor_id = %s
-                    """, (row[1]))
-                    expertises = [expertise[0] for expertise in cur.fetchall()]
-                    
+                    """, (row[1],))
+                    expertises_results = cur.fetchall()
+                    if expertises_results:
+                        expertises = [expertise[0] for expertise in expertises_results]
+                    else:
+                        expertises = []
+
                     tutors.append({
                         'id': row[0],
                         'tutor_id': row[1],
@@ -119,8 +129,7 @@ def get_tutors():
                         'email': row[4],
                         'type': row[5],
                         'slots': row[6],
-                        'areaName': row[7],
-                        'areaId': row[8],
+                        'areaId': row[7],
                         'expertises': expertises
                         
                     })
@@ -129,6 +138,9 @@ def get_tutors():
     except Exception as e:
         logger.exception(f"Error fetching tutors: {e}")
         return jsonify({'error': 'Internal Server Error'}), 500
+    finally:
+        if conn:
+            DBPool.get_instance().putconn(conn)
 
 @app.route('/areas', methods=['GET'])
 def get_areas():
@@ -146,8 +158,11 @@ def get_areas():
                     areas.append(area)
                 return jsonify(areas), 200
     except Exception as e:
-        logger.exception(f"Error fetching areas: {e}")
+        logger.exception(f"Error fetching tutors: {e}")
         return jsonify({'error': 'Internal Server Error'}), 500
+    finally:
+        if conn:
+            DBPool.get_instance().putconn(conn)
  
 @app.route('/expertises', methods=['GET'])
 def get_expertises():
@@ -167,8 +182,11 @@ def get_expertises():
                     expertises.append(expertise)
                 return jsonify(expertises), 200
     except Exception as e:
-        logger.exception(f"Error fetching expertises: {e}")
+        logger.exception(f"Error fetching tutors: {e}")
         return jsonify({'error': 'Internal Server Error'}), 500
+    finally:
+        if conn:
+            DBPool.get_instance().putconn(conn)
 
 @app.route('/tutor_expertise', methods=['GET'])
 def get_tutor_expertise():
@@ -187,8 +205,11 @@ def get_tutor_expertise():
                     tutor_expertises.append(tutor_expertise)
                 return jsonify(tutor_expertises), 200
     except Exception as e:
-        logger.exception(f"Error fetching tutor_expertises: {e}")
+        logger.exception(f"Error fetching tutors: {e}")
         return jsonify({'error': 'Internal Server Error'}), 500
+    finally:
+        if conn:
+            DBPool.get_instance().putconn(conn)
 
 @app.route('/projects', methods=['GET'])
 def get_projects():
@@ -212,8 +233,11 @@ def get_projects():
                     projects.append(project)
                 return jsonify(projects), 200
     except Exception as e:
-        logger.exception(f"Error fetching projects: {e}")
+        logger.exception(f"Error fetching tutors: {e}")
         return jsonify({'error': 'Internal Server Error'}), 500
+    finally:
+        if conn:
+            DBPool.get_instance().putconn(conn)
  
 @app.route('/get_student', methods=['POST'])
 def get_student():
@@ -235,8 +259,11 @@ def get_student():
                     students.append(student)
                 return jsonify(students), 200
     except Exception as e:
-        logger.exception(f"Error fetching projects: {e}")
+        logger.exception(f"Error fetching tutors: {e}")
         return jsonify({'error': 'Internal Server Error'}), 500
+    finally:
+        if conn:
+            DBPool.get_instance().putconn(conn)
 
 
 if __name__ == '__main__':

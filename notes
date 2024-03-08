@@ -1,0 +1,2 @@
+to run the tailwnd css cnfig files 
+npx tailwindcss -i ./src/styles/tailwind.css -o ./src/assets/css/tailwind.output.css --watch

@@ -22,7 +22,7 @@ class DBPool:
     @staticmethod
     def get_instance():
         if DBPool._instance is None:
-            DBPool._instance = pool.ThreadedConnectionPool(minconn=1, maxconn=10,
+            DBPool._instance = pool.ThreadedConnectionPool(minconn=1, maxconn=20,
 
                                                            user=DB_USER,
                                                            password=DB_PASSWORD,
@@ -262,28 +262,30 @@ def store_expertises_in_database(name, acronym, area_id):
     try:
         with DBPool.get_instance().getconn() as conn:
             with conn.cursor() as cur:
-                try:
-                    cur.execute("""
-                        INSERT INTO "expertises" (name, acronym, area_id)
-                        VALUES (%s, %s, %s)
-                    """, (name, acronym, area_id))
-                    conn.commit()
-                    print("Expertise stored successfully")
-                    return "Expertise stored successfully."
-                except psycopg2.Error as e:
-                    logger.error(f"Failed to insert expertise: {e}", exc_info=True)  # Log the error with stack trace
-                    # Rollback the transaction on error
-                    conn.rollback() 
-                    return f"Failed to insert expertise:", 500
-                except Exception as e:
-                    logger.exception(f"Unexpected error: {e}")  # Log unexpected errors with full context 
-                    # Rollback the transaction on error
-                    conn.rollback() 
-                    return f"Unexpected error: {e}", 500
+                cur.execute("""
+                    INSERT INTO "expertises" (name, acronym, area_id)
+                    VALUES (%s, %s, %s)
+                """, (name, acronym, area_id))
+                conn.commit()
+                print("Expertise stored successfully")
+                # Success: Return None for error message and 201 for status code
+                return None, 201
     except psycopg2.Error as e:
-        return f"Unable to add expertise: {e}"
+        logger.error(f"Failed to insert expertise: {e}", exc_info=True)
+        # Rollback the transaction on error
+        conn.rollback() 
+        # Error: Return error message and 500 for status code
+        return "Failed to insert expertise due to a database error.", 500
+    except Exception as e:
+        logger.exception(f"Unexpected error: {e}")
+        conn.rollback() 
+        # Error: Return error message and 500 for status code
+        return "Unexpected error occurred.", 500
     finally:
-            DBPool.get_instance().putconn(conn)
+        DBPool.get_instance().putconn(conn)
+
+# Adjust the `except` at the outer level if needed, based on your application's error handling strategy
+
 
 def store_tutors_in_database(slots, user_id, area_id):
     try:
@@ -394,7 +396,7 @@ def store_projects_in_database(name, description, student_id, tutor_id, area_id,
     finally:
             DBPool.get_instance().putconn(conn)
        
-def change_user_type(userId, newType):
+def change_user_type_in_database(userId, newType):
     try:
         with DBPool.get_instance().getconn() as conn:
             with conn.cursor() as cur:
@@ -426,6 +428,48 @@ def change_user_type(userId, newType):
     finally:
             DBPool.get_instance().putconn(conn)
 
+def update_user(user):
+    try:
+        with DBPool.get_instance().getconn() as conn:
+            with conn.cursor() as cur:
+                try:
+                    conn.autocommit = False  # Disable autocommit for transaction control
+
+                    # Perform database operations
+                    change_tutor_details(cur, user)
+                    change_tutor_type(cur, user)
+                    delete_old_expertises(cur, user)
+                    add_new_expertises(cur, user)
+
+                    conn.commit()  # Commit the transaction if all operations succeed
+                    return True, "User updated successfully"  # Indicate success
+                except psycopg2.Error as e:
+                    conn.rollback()  # Rollback the transaction in case of a database error
+                    return False, f"Transaction failed: {e}"  # Indicate failure and return error message
+                except Exception as e:
+                    conn.rollback()  # Rollback the transaction in case of a general error
+                    return False, f"Unexpected error: {e}"  # Indicate failure and return error message
+    except psycopg2.Error as e:
+        return False, f"Unable to create link: {e}"  # Return False for failure outside the inner try-except
+    finally:
+        DBPool.get_instance().putconn(conn)  # Ensure the connection is always returned to the pool
+
+
+def change_tutor_details(cur, user):
+    cur.execute("UPDATE tutors SET slots = %s, area_id = %s WHERE id = %s", (user['slots'], user['areaId'] , user['id']))
+
+def delete_old_expertises(cur, user):
+    cur.execute("DELETE FROM tutor_expertise WHERE tutor_id = %s", ( user['tutor_id'],))
+
+def add_new_expertises(cur, user):
+    for e in user['expertises']:
+        cur.execute("INSERT INTO tutor_expertise (tutor_id, expertise_id) VALUES (%s, %s)", (user['tutor_id'], e['id']))
+
+def change_tutor_type(cur, user):
+    cur.execute("UPDATE users SET type = %s WHERE id = %s", (user['type'], user['id']))
+
+ 
+           
 
 
 

@@ -74,19 +74,22 @@ def configure_routes(app):
     @app.route('/changeUserType', methods=['POST'])
     def change_user_type():
         data = request.get_json()
-        userId = data.get('userId')
+        userId = data.get('id')
         newType = data.get('newType')
 
+        if userId is None or newType is None:
+            return jsonify({'error': "Missing 'id' or 'newType' in request"}), 400
+
         try:
-            success, message = change_user_type(userId, newType)
-        
+            success, message = change_user_type_in_database(userId, newType)
+
             if success:
                 return jsonify({'message': message}), 200
             else:
                 return jsonify({'error': message}), 404 if message == "User not found" else 500
         except Exception as e:
-            # Log the error here if you have logging set up
-            return jsonify({'error': f"Unexpected error: {e}"}), 500
+            app.logger.error(f"Unexpected error while changing user type: {e}", exc_info=True)
+            return jsonify({'error': "An unexpected error occurred"}), 500
 
     @app.route('/addArea', methods=['POST', 'OPTIONS'])
     def addArea():
@@ -125,15 +128,30 @@ def configure_routes(app):
             if not all([name, acronym, areaId]):
                 return jsonify({'error': 'All fields must be filled'}), 400
 
-            store_expertise_result = store_expertises_in_database(name,acronym,areaId)
+            error_message, status_code = store_expertises_in_database(name, acronym, areaId)
             
-            if store_expertise_result:
-                error_message, status_code = store_expertise_result
+            if error_message:
                 return jsonify({'error': error_message}), status_code
 
             return jsonify({'message': 'Expertise created successfully'}), 201
         except Exception as e:
-            logger.exception(f"Exception in signup: {e}")
-            return jsonify({'error': 'Failed to add Expertise'}), 500
+            logger.exception(f"Exception in addExpertise: {e}")
+            return jsonify({'error': 'Failed to add expertise'}), 500
+
+
+    @app.route('/changeTutors', methods=['POST'])
+    def change_tutor():
+        data = request.get_json()
+        user = data.get('user')
+        try:
+            success, message = update_user(user)
+
+            if success:
+                return jsonify({'message': message}), 200
+            else:
+                return jsonify({'error': message}), 404 if message == "User not found" else 500
+        except Exception as e:
+            app.logger.error(f"Unexpected error while changing user type: {e}", exc_info=True)
+            return jsonify({'error': "An unexpected error occurred"}), 500
 
 
