@@ -41,7 +41,7 @@
                 </div>
                 <div v-else>
                   {{ user.type }}
-                </div>
+                </div>  
               </td>
               <td class="px-4 py-2">
                 <div v-if="editingUserId === user.id">
