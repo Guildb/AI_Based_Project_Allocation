@@ -117,23 +117,25 @@ export default {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          email: this.email, // Changed from username to email to match Flask
+          email: this.email,
           password: this.password,
         }),
       })
         .then((response) => {
           if (!response.ok) {
-            throw new Error("Failed to login. Please check your credentials."); // Handling non-200 responses
+            return response.json().then((err) => {
+              throw new Error(err.error); // Use the 'error' key from your JSON response, or adjust based on your backend structure
+            });
           }
           return response.json();
         })
         .then((data) => {
-          console.log("Success:", data);
+          console.log("Login successful:", data);
           // TODO: Handle login success, e.g., storing the session token, if any
-          this.$router.push("/");
+          this.$router.push("/students");
         })
         .catch((error) => {
-          console.error("Error:", error);
+          console.error("Login failed:", error.message);
           alert(error.message); // Providing feedback to the user
         });
     },

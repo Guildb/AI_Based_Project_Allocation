@@ -9,8 +9,6 @@ import logging
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
-
-
 load_dotenv()
 
 
@@ -54,12 +52,12 @@ def get_users():
                     users.append(user)
                 return jsonify(users), 200
     except Exception as e:
-        logger.exception(f"Error fetching tutors: {e}")
+        logger.exception("Error fetching users: %s", e)
         return jsonify({'error': 'Internal Server Error'}), 500
     finally:
         if conn:
             DBPool.get_instance().putconn(conn)
-        
+            
 @app.route('/students', methods=['GET'])
 def get_students():
     try:
@@ -110,7 +108,7 @@ def get_tutors():
                 # Fetch expertises for each tutor
                 for row in tutor_rows:
                     cur.execute("""
-                        SELECT *
+                        SELECT expertise_id
                         FROM "tutor_expertise" te
                         LEFT JOIN "expertises" e ON te.expertise_id = e.id
                         WHERE te.tutor_id = %s

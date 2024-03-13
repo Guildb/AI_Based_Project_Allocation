@@ -22,10 +22,17 @@ services:
     depends_on:
       - postgresql
     environment:
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_HOST=postgresql
+      - DB_PORT=5432
+      - DB_NAME=ai-based-project-allocation
       - FLASK_APP=app.py
       - FLASK_ENV=development
       - DATABASE_URL=postgresql://postgres:postgres@postgresql:5432/ai-based-project-allocation
-
+    volumes:
+      - ./backend:/app
+    command: ["sh", "-c", "while ! timeout 1 bash -c 'cat < /dev/null > /dev/tcp/postgresql/5432'; do sleep 1; done; flask run --host=0.0.0.0"]
   
   vuejs:
     container_name: ai-based-project-allocation-vuejs
