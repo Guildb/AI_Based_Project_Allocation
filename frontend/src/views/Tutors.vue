@@ -5,49 +5,53 @@
       class="w-full max-w-4xl bg-gray-200 bg-opacity-50 rounded-lg shadow-lg transition-opacity duration-700 ease-in p-1"
       :class="{ 'opacity-100': isAnimated }"
     >
-      <div>
-        <table id="myTable" width="100%">
-          <thead>
-            <tr>
-              <th class="px-4 py-2">Name</th>
-              <th class="px-4 py-2">Email</th>
-              <th class="px-4 py-2">Type</th>
-              <th class="px-4 py-2">Slots</th>
-              <th class="px-4 py-2">Area</th>
-              <th class="px-4 py-2">Expertises</th>
-              <th class="px-4 py-2"></th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="user in users" :key="user.id">
-              <td class="px-4 py-2">
-                {{ user.firstName }} {{ user.lastName }}
-              </td>
-              <td class="px-4 py-2">{{ user.email }}</td>
-              <td class="px-4 py-2">{{ user.type }}</td>
-              <td class="px-4 py-2">{{ user.slots }}</td>
-              <td class="px-4 py-2">
-                {{ user.areaId === 0 ? "NaN" : getAreaName(user.areaId) }}
-              </td>
-              <td class="px-4 py-2">
-                {{
-                  user.expertises.length === 0
-                    ? "NaN"
-                    : getExpertiseNames(user.expertises)
-                }}
-              </td>
-              <td class="px-4 py-2">
-                <button
-                  @click="editUser(user)"
-                  class="bg-green-700 hover:bg-green-500 text-white font-bold py-2 px-4 rounded"
-                >
-                  Edit
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <vue-good-table
+        :columns="columns"
+        :rows="users"
+        :pagination-options="{ enabled: true }"
+        :search-options="{ enabled: true }"
+        styleClass="vgt-table striped condensed"
+        theme="nocturnal"
+      >
+        <template v-slot:table-row="props">
+          <span v-if="props.column.field === 'fullName'">
+            {{ props.row.firstName }} {{ props.row.lastName }}
+          </span>
+          <span v-else-if="props.column.field === 'email'">
+            {{ props.row.email }}
+          </span>
+          <span v-else-if="props.column.field === 'type'">
+            {{
+              (
+                typeList.find(
+                  (typeItem) => typeItem.value === props.row.type
+                ) || {}
+              ).name || props.row.type
+            }}
+          </span>
+          <span v-else-if="props.column.field === 'slots'">
+            {{ props.row.slots }}
+          </span>
+          <span v-else-if="props.column.field === 'area'">
+            {{ props.row.areaId === 0 ? "NaN" : getAreaName(props.row.areaId) }}
+          </span>
+          <span v-else-if="props.column.field === 'expertises'">
+            {{
+              props.row.expertises.length === 0
+                ? "NaN"
+                : getExpertiseNames(props.row.expertises)
+            }}
+          </span>
+          <span v-else-if="props.column.field === 'actions'">
+            <button
+              @click="editUser(props.row)"
+              class="bg-green-700 hover:bg-green-500 text-white font-bold py-2 px-4 rounded"
+            >
+              Edit
+            </button>
+          </span>
+        </template>
+      </vue-good-table>
     </div>
   </div>
 
@@ -138,14 +142,15 @@
 </template>
 
 <script>
-import DataTable from "datatables.net-dt";
-
+import { VueGoodTable } from "vue-good-table-next";
+import "vue-good-table-next/dist/vue-good-table-next.css";
 import navbar from "@/components/NavBar.vue";
 
 export default {
   name: "TutorPage",
   components: {
     navbar,
+    VueGoodTable,
   },
   data() {
     return {
@@ -161,6 +166,20 @@ export default {
       editingUserId: null,
       showModal: false,
       editingUser: null,
+      columns: [
+        { label: "Name", field: "fullName" },
+        { label: "Email", field: "email" },
+        { label: "Type", field: "type", tdClass: "text-center" },
+        { label: "Slots", field: "slots" },
+        { label: "Area", field: "area" },
+        { label: "Expertises", field: "expertises" },
+        {
+          label: "Actions",
+          field: "actions",
+          sortable: false,
+          tdClass: "text-right",
+        },
+      ],
     };
   },
 
@@ -175,12 +194,6 @@ export default {
         })
         .then((data) => {
           this.users = data;
-          this.$nextTick(() => {
-            new DataTable("#myTable", {
-              responsive: true,
-              scrollX: true,
-            });
-          });
         })
         .catch((error) => {
           console.error("There was a problem fetching the user data:", error);
@@ -209,7 +222,7 @@ export default {
       return area ? area.name : "Not Found";
     },
     editUser(user) {
-      this.editingUser = { ...user }; // Make a copy of the user to edit
+      this.editingUser = { ...user, originalType: user.type };
       this.showModal = true;
     },
     async saveUser() {
@@ -231,14 +244,14 @@ export default {
         }
 
         await response.json();
-        this.editingUserId = null;
-        this.editingUser = {};
-        window.location.reload();
+        this.cancelEdit();
+        this.fetchUsers();
       } catch (error) {
         console.error("There was a problem editing the user:", error);
       }
     },
     cancelEdit() {
+      this.editingUserId = null;
       this.showModal = false;
       this.editingUser = null;
     },
@@ -253,5 +266,3 @@ export default {
   },
 };
 </script>
-
-<style scoped></style>

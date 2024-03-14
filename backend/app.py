@@ -101,7 +101,7 @@ def get_tutors():
                     FROM "users" u
                     LEFT JOIN "tutors" t ON u.id = t.user_id
                     LEFT JOIN "areas" a ON t.area_id = a.id
-                    WHERE u.type = 'tutor'
+                    WHERE u.type = 'tutor' OR u.type = 'courseLeader'
                 """)
                 tutor_rows = cur.fetchall()
                 

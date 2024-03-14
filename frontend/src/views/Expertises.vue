@@ -5,30 +5,41 @@
       class="w-full max-w-4xl bg-gray-200 bg-opacity-50 rounded-lg shadow-lg transition-opacity duration-700 ease-in p-1"
       :class="{ 'opacity-100': isAnimated }"
     >
-      <button
-        @click="toggleInput"
-        class="bg-green-700 hover:bg-green-500 text-white font-bold py-2 px-4 rounded"
+      <vue-good-table
+        :columns="columns"
+        :rows="expertises"
+        :pagination-options="{ enabled: true }"
+        :search-options="{ enabled: true }"
+        styleClass="vgt-table striped condensed"
+        theme="nocturnal"
       >
-        Add Expertise
-      </button>
-      <div>
-        <table id="myTable" width="100%">
-          <thead>
-            <tr>
-              <th class="px-4 py-2">Name</th>
-              <th class="px-4 py-2">Acronym</th>
-              <th class="px-4 py-2">Area</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="expertise in expertises" :key="expertise.id">
-              <td class="px-4 py-2">{{ expertise.name }}</td>
-              <td class="px-4 py-2">{{ expertise.acronyms }}</td>
-              <td>{{ findAreaName(expertise.area_id) }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+        <template v-slot:table-actions>
+          <button
+            @click="toggleInput"
+            class="bg-green-700 hover:bg-green-500 text-white font-bold py-2 px-4 rounded"
+          >
+            Add Expertise
+          </button>
+        </template>
+        <template v-slot:table-row="props">
+          <span v-if="props.column.field === 'name'">
+            {{ props.row.name }}
+          </span>
+          <span v-else-if="props.column.field === 'acronym'">
+            {{ props.row.acronyms }}
+          </span>
+          <span v-else-if="props.column.field === 'area'">
+            {{ findAreaName(props.row.area_id) }}
+          </span>
+          <span v-else-if="props.column.field === 'actions'">
+            <button
+              class="bg-green-700 hover:bg-green-500 text-white font-bold py-2 px-4 rounded"
+            >
+              Delete
+            </button>
+          </span>
+        </template>
+      </vue-good-table>
     </div>
   </div>
 
@@ -84,15 +95,15 @@
 </template>
 
 <script>
-// Import DataTables
-import DataTable from "datatables.net-dt";
-
+import { VueGoodTable } from "vue-good-table-next";
+import "vue-good-table-next/dist/vue-good-table-next.css";
 import navbar from "@/components/NavBar.vue";
 
 export default {
   name: "ExpertisePage",
   components: {
     navbar,
+    VueGoodTable,
   },
   data() {
     return {
@@ -103,6 +114,17 @@ export default {
       newName: "",
       newAcronym: "",
       newArea: null,
+      columns: [
+        { label: "Name", field: "name" },
+        { label: "Acronym", field: "acronym" },
+        { label: "Area", field: "area" },
+        {
+          label: "Actions",
+          field: "actions",
+          sortable: false,
+          tdClass: "text-right",
+        },
+      ],
     };
   },
 
@@ -143,7 +165,7 @@ export default {
           this.newName = "";
           this.newAcronym = "";
           this.newArea = null;
-          window.location.reload();
+          this.fetchExpertises();
         })
         .catch((error) => {
           console.error("There was a problem adding the area:", error);
@@ -166,12 +188,6 @@ export default {
         })
         .then((data) => {
           this.expertises = data;
-          this.$nextTick(() => {
-            new DataTable("#myTable", {
-              responsive: true,
-              scrollX: true,
-            });
-          });
         })
         .catch((error) => {
           console.error(
@@ -199,8 +215,8 @@ export default {
     setTimeout(() => {
       this.isAnimated = true;
     }, 100);
-    this.fetchExpertises();
     this.fetchAreas();
+    this.fetchExpertises();
   },
 };
 </script>

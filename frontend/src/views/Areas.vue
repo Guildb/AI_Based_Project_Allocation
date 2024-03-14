@@ -5,26 +5,35 @@
       class="w-full max-w-4xl bg-gray-200 bg-opacity-50 rounded-lg shadow-lg transition-opacity duration-700 ease-in p-1"
       :class="{ 'opacity-100': isAnimated }"
     >
-      <button
-        @click="toggleInput"
-        class="bg-green-700 hover:bg-green-500 text-white font-bold py-2 px-4 rounded"
+      <vue-good-table
+        :columns="columns"
+        :rows="areas"
+        :pagination-options="{ enabled: true }"
+        :search-options="{ enabled: true }"
+        styleClass="vgt-table striped condensed"
+        theme="nocturnal"
       >
-        Add Area
-      </button>
-      <div>
-        <table id="myTable" width="100%">
-          <thead>
-            <tr>
-              <th class="px-4 py-2">Name</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="area in areas" :key="area.id">
-              <td class="px-4 py-2">{{ area.name }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+        <template v-slot:table-actions>
+          <button
+            @click="toggleInput"
+            class="bg-green-700 hover:bg-green-500 text-white font-bold py-2 px-4 rounded"
+          >
+            Add Area
+          </button>
+        </template>
+        <template v-slot:table-row="props">
+          <span v-if="props.column.field === 'name'">
+            {{ props.row.name }}
+          </span>
+          <span v-else-if="props.column.field === 'actions'">
+            <button
+              class="bg-red-700 hover:bg-red-500 text-white font-bold py-2 px-4 rounded"
+            >
+              Delete
+            </button>
+          </span>
+        </template>
+      </vue-good-table>
     </div>
   </div>
 
@@ -65,14 +74,15 @@
 </template>
 
 <script>
-import DataTable from "datatables.net-dt";
-
+import { VueGoodTable } from "vue-good-table-next";
+import "vue-good-table-next/dist/vue-good-table-next.css";
 import navbar from "@/components/NavBar.vue";
 
 export default {
   name: "AreasPage",
   components: {
     navbar,
+    VueGoodTable,
   },
   data() {
     return {
@@ -80,6 +90,15 @@ export default {
       areas: [],
       showInput: false,
       newName: "",
+      columns: [
+        { label: "Name", field: "name" },
+        {
+          label: "Actions",
+          field: "actions",
+          sortable: false,
+          tdClass: "text-right",
+        },
+      ],
     };
   },
 
@@ -107,7 +126,7 @@ export default {
         .then(() => {
           this.showAddArea = false;
           this.newAreaName = "";
-          window.location.reload();
+          this.fetchAreas();
         })
         .catch((error) => {
           console.error("There was a problem adding the area:", error);
@@ -124,12 +143,6 @@ export default {
         })
         .then((data) => {
           this.areas = data;
-          this.$nextTick(() => {
-            new DataTable("#myTable", {
-              responsive: true,
-              scrollX: true,
-            });
-          });
         })
         .catch((error) => {
           console.error("There was a problem fetching the areas data:", error);
@@ -152,13 +165,3 @@ export default {
   },
 };
 </script>
-
-<style scoped>
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.5s;
-}
-.fade-enter, .fade-leave-to /* .fade-leave-active in <2.1.8 */ {
-  opacity: 0;
-}
-</style>

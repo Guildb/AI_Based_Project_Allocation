@@ -5,82 +5,88 @@
       class="w-full max-w-4xl bg-gray-200 bg-opacity-50 rounded-lg shadow-lg transition-opacity duration-700 ease-in p-1"
       :class="{ 'opacity-100': isAnimated }"
     >
-      <div>
-        <table id="myTable" width="100%">
-          <thead>
-            <tr>
-              <th class="px-4 py-2">Name</th>
-              <th class="px-4 py-2">Email</th>
-              <th class="px-4 py-2">Student No.</th>
-              <th class="px-4 py-2">Type</th>
-              <th class="px-4 py-2"></th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="user in users" :key="user.id">
-              <td class="px-4 py-2">
-                {{ user.firstName }} {{ user.lastName }}
-              </td>
-              <td class="px-4 py-2">{{ user.email }}</td>
-              <td class="px-4 py-2">{{ user.student_number }}</td>
-              <td class="px-4 py-2">
-                <div v-if="editingUserId === user.id">
-                  <select
-                    v-model="user.newType"
-                    class="bg-gray-200 text-gray-700 py-1 px-2 rounded"
-                  >
-                    <option
-                      v-for="typeItem in typeList"
-                      :key="typeItem.value"
-                      :value="typeItem.value"
-                    >
-                      {{ typeItem.name }}
-                    </option>
-                  </select>
-                </div>
-                <div v-else>
-                  {{ user.type }}
-                </div>
-              </td>
-              <td class="px-4 py-2">
-                <button
-                  v-if="editingUserId !== user.id"
-                  @click="editUser(user)"
-                  class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+      <vue-good-table
+        :columns="columns"
+        :rows="users"
+        :pagination-options="{ enabled: true }"
+        :search-options="{ enabled: true }"
+        styleClass="vgt-table striped condensed"
+        theme="nocturnal"
+      >
+        <template v-slot:table-row="props">
+          <span v-if="props.column.field === 'fullName'">
+            {{ props.row.firstName }} {{ props.row.lastName }}
+          </span>
+          <span v-else-if="props.column.field === 'email'">
+            {{ props.row.email }}
+          </span>
+          <span v-else-if="props.column.field === 'student_number'">
+            {{ props.row.student_number }}
+          </span>
+          <span v-else-if="props.column.field === 'type'">
+            <div v-if="editingUserId === props.row.id">
+              <select
+                v-model="props.row.newType"
+                class="bg-gray-200 text-gray-700 py-1 px-2 rounded"
+              >
+                <option
+                  v-for="typeItem in typeList"
+                  :key="typeItem.value"
+                  :value="typeItem.value"
                 >
-                  Edit
-                </button>
-                <div v-if="editingUserId === user.id">
-                  <button
-                    @click="changeUserType(user)"
-                    class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                  >
-                    Save
-                  </button>
-                  <button
-                    @click="cancelEdit()"
-                    class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+                  {{ typeItem.name }}
+                </option>
+              </select>
+            </div>
+            <div v-else>
+              {{
+                (
+                  typeList.find(
+                    (typeItem) => typeItem.value === props.row.type
+                  ) || {}
+                ).name || props.row.type
+              }}
+            </div>
+          </span>
+          <span v-else-if="props.column.field === 'actions'">
+            <button
+              v-if="editingUserId !== props.row.id"
+              @click="editUser(props.row)"
+              class="bg-green-700 hover:bg-green-500 text-white font-bold py-2 px-4 rounded"
+            >
+              Edit
+            </button>
+            <div v-if="editingUserId === props.row.id">
+              <button
+                @click="changeUserType(props.row)"
+                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              >
+                Save
+              </button>
+              <button
+                @click="cancelEdit()"
+                class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+              >
+                Cancel
+              </button>
+            </div>
+          </span>
+        </template>
+      </vue-good-table>
     </div>
   </div>
 </template>
 
 <script>
-import DataTable from "datatables.net-dt";
+import { VueGoodTable } from "vue-good-table-next";
+import "vue-good-table-next/dist/vue-good-table-next.css";
 import navbar from "@/components/NavBar.vue";
 
 export default {
   name: "StudentsPage",
   components: {
     navbar,
+    VueGoodTable,
   },
   data() {
     return {
@@ -92,31 +98,50 @@ export default {
         { value: "courseLeader", name: "Course Leader" },
       ],
       editingUserId: null,
+      editingUser: {},
+      columns: [
+        { label: "Name", field: "fullName" },
+        { label: "Email", field: "email" },
+        { label: "Student No.", field: "student_number" },
+        { label: "Type", field: "type", tdClass: "text-center" },
+        {
+          label: "Actions",
+          field: "actions",
+          sortable: false,
+          tdClass: "text-right",
+        },
+      ],
     };
   },
 
   methods: {
     async changeUserType(user) {
-      try {
-        const response = await fetch(
-          `${process.env.VUE_APP_BACKEND_URL}/changeUserType`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ id: user.id, newType: user.newType }),
-          }
-        );
+      if (user.type !== user.newType) {
+        try {
+          const response = await fetch(
+            `${process.env.VUE_APP_BACKEND_URL}/changeUserType`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ id: user.id, newType: user.newType }),
+            }
+          );
 
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
+          if (!response.ok) {
+            throw new Error("Network response was not ok");
+          }
+          this.editingUserId = null;
+          this.fetchUsers();
+        } catch (error) {
+          console.error("There was a problem updating the user type:", error);
         }
-        this.editingUserId = null;
-        window.location.reload();
-      } catch (error) {
-        console.error("There was a problem updating the user type:", error);
+      } else {
+        console.log("User type has not changed.");
       }
+      this.editingUserId = null;
+      this.fetchUsers();
     },
 
     fetchUsers() {
@@ -133,12 +158,6 @@ export default {
             showDropdown: false,
             newType: user.type,
           }));
-          this.$nextTick(() => {
-            new DataTable("#myTable", {
-              responsive: true,
-              scrollX: true,
-            });
-          });
         })
         .catch((error) => {
           console.error("There was a problem fetching the user data:", error);

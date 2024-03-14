@@ -436,14 +436,15 @@ def change_user_type_db(userId,newType):
                     conn.autocommit = False  # Disable autocommit for transaction control
                     oldType = check_user_type(userId)
                         
-                    if newType=="tutor":
+                    if newType == "tutor" or newType == "courseLeader":
                         if oldType =="student":
                             delete_old_user(cur, "students", userId )
+                            store_tutors_in_database(0, userId, None)
                         change_user_type_in_database(cur, userId, newType)
-                        store_tutors_in_database(0, userId, None)
+                        
                         
                     elif newType=="student":
-                        if oldType =="tutor":
+                        if oldType =="tutor" or oldType == "courseLeader":
                             delete_old_user(cur, "tutors", userId )
                         change_user_type_in_database(cur, userId, newType)
                         store_students_in_database(0, userId)
@@ -498,11 +499,13 @@ def update_user(user):
                         conn.commit()
                         change_user_type_db(user['id'], user['type'])
                     else:
+                        logging.info("Changing type to course leader: %s", user['id'])
                         delete_old_expertises(cur, user)
                         add_new_expertises(cur, user)
                         conn.commit()
                         change_user_type_db(user['id'], user['type'])
                 else:
+                    logging.info("TYPE NOT CHANGED: %s", user['id'])
                     # If the user type hasn't changed but you still need to perform some operations.
                     delete_old_expertises(cur, user)
                     add_new_expertises(cur, user)

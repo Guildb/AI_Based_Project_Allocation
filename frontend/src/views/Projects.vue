@@ -1,10 +1,4 @@
 <template>
-  <link
-    href="https://cdn.datatables.net/v/dt/dt-2.0.1/b-3.0.0/datatables.min.css"
-    rel="stylesheet"
-  />
-
-  <script src="https://cdn.datatables.net/v/dt/dt-2.0.1/b-3.0.0/datatables.min.js"></script>
   <navbar />
   <div class="min-h-screen flex justify-center items-center p-4">
     <div
@@ -15,10 +9,9 @@
         <table id="myTable" class="display min-w-full">
           <thead>
             <tr>
-              <th class="px-4 py-2">Name</th>
+              <th class="px-4 py-2">Naming</th>
               <th class="px-4 py-2">Email</th>
               <th class="px-4 py-2">Type</th>
-              <th class="px-4 py-2"></th>
             </tr>
           </thead>
           <tbody>
@@ -28,14 +21,6 @@
               </td>
               <td class="px-4 py-2">{{ user.email }}</td>
               <td class="px-4 py-2">{{ user.type }}</td>
-              <td class="px-4 py-2">
-                <button
-                  @click="getuserid(user.id)"
-                  class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                >
-                  Get User ID
-                </button>
-              </td>
             </tr>
           </tbody>
         </table>
