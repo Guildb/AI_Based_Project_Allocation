@@ -114,7 +114,7 @@
 
 <script>
 export default {
-  name: "LoginPage",
+  name: "SignupPage",
   data() {
     return {
       password: "",

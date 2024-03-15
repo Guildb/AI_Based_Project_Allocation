@@ -64,7 +64,7 @@ def get_students():
         with DBPool.get_instance().getconn() as conn:
             with conn.cursor() as cur:
                 cur.execute("""
-                    SELECT u.id, u.firstName, u.lastName, u.email, u.type, COALESCE(s.student_number, 'NaN') AS student_number
+                    SELECT u.id, u.firstName, u.lastName, u.email, u.type, COALESCE(s.student_number, 'NaN') AS student_number, s.id
                     FROM "users" u
                     LEFT JOIN "students" s ON u.id = s.user_id
                     WHERE u.type = 'student'
@@ -78,7 +78,8 @@ def get_students():
                         'lastName': row[2],   
                         'email': row[3],
                         'type': row[4],
-                        'student_number': row[5]  
+                        'student_number': row[5],
+                        'student_id' : row[6] 
                     }
                     users.append(user)
                 return jsonify(users), 200
@@ -212,30 +213,43 @@ def get_tutor_expertise():
 @app.route('/projects', methods=['GET'])
 def get_projects():
     try:
+        projects = []
         with DBPool.get_instance().getconn() as conn:
             with conn.cursor() as cur:
                 cur.execute("SELECT * FROM \"projects\"")
-                rows = cur.fetchall()
-                projects = []
-                for row in rows:
-                    project = {
+                projects_rows = cur.fetchall()
+                
+                # Fetch expertises for each project
+                for row in projects_rows:
+                    cur.execute("""
+                        SELECT expertise_id
+                        FROM "project_expertise" pe
+                        LEFT JOIN "expertises" e ON pe.expertise_id = e.id
+                        WHERE pe.project_id = %s
+                    """, (row[0],))
+                    expertises_results = cur.fetchall()
+                    if expertises_results:
+                        expertises = [expertise[0] for expertise in expertises_results]
+                    else:
+                        expertises = []
+
+                    projects.append({
                         'id': row[0],
                         'name': row[1],
                         'description': row[2],
                         'student_id': row[3],
                         'tutor_id': row[4],
                         'area_id': row[5],
-                        'expertise_id': row[6],
-                        'alocated': row[7],
-                    }
-                    projects.append(project)
+                        'alocated': row[6],
+                        'expertises': expertises
+                    })
                 return jsonify(projects), 200
     except Exception as e:
-        logger.exception(f"Error fetching tutors: {e}")
+        logger.exception(f"Error fetching projects: {e}")
         return jsonify({'error': 'Internal Server Error'}), 500
     finally:
         if conn:
-            DBPool.get_instance().putconn(conn)
+            DBPool.get_instance().putconn(conn)                    
  
 @app.route('/get_student', methods=['POST'])
 def get_student():

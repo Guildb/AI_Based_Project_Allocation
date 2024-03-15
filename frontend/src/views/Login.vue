@@ -132,7 +132,7 @@ export default {
         .then((data) => {
           console.log("Login successful:", data);
           // TODO: Handle login success, e.g., storing the session token, if any
-          this.$router.push("/students");
+          this.$router.push("/dashboard");
         })
         .catch((error) => {
           console.error("Login failed:", error.message);

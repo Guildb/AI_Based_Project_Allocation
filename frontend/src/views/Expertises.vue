@@ -100,7 +100,7 @@ import "vue-good-table-next/dist/vue-good-table-next.css";
 import navbar from "@/components/NavBar.vue";
 
 export default {
-  name: "ExpertisePage",
+  name: "ExpertisesPage",
   components: {
     navbar,
     VueGoodTable,

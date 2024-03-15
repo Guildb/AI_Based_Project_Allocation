@@ -4,43 +4,48 @@ import { createRouter, createWebHistory } from "vue-router";
 const routes = [
   {
     path: "/",
-    name: "Main",
+    name: "HomePage",
     component: () => import("../views/MainPage.vue"),
   },
   {
     path: "/login",
-    name: "Login",
+    name: "LoginPage",
     component: () => import("../views/Login.vue"),
   },
   {
     path: "/signup",
-    name: "Signup",
+    name: "SignupPage",
     component: () => import("../views/Signup.vue"),
   },
   {
     path: "/students",
-    name: "Students",
+    name: "StudentsPage",
     component: () => import("../views/Students.vue"),
   },
   {
     path: "/tutors",
-    name: "Tutors",
+    name: "TutorsPage",
     component: () => import("../views/Tutors.vue"),
   },
   {
     path: "/projects",
-    name: "Projects",
+    name: "ProjectsPage",
     component: () => import("../views/Projects.vue"),
   },
   {
     path: "/areas",
-    name: "Areas",
+    name: "AreasPage",
     component: () => import("../views/Areas.vue"),
   },
   {
     path: "/expertises",
-    name: "Expertises",
+    name: "ExpertisesPage",
     component: () => import("../views/Expertises.vue"),
+  },
+  {
+    path: "/dashboard",
+    name: "DashBoard",
+    component: () => import("../views/Dashboard.vue"),
   },
 ];
 

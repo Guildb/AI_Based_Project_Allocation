@@ -147,7 +147,7 @@ import "vue-good-table-next/dist/vue-good-table-next.css";
 import navbar from "@/components/NavBar.vue";
 
 export default {
-  name: "TutorPage",
+  name: "TutorsPage",
   components: {
     navbar,
     VueGoodTable,
@@ -155,6 +155,8 @@ export default {
   data() {
     return {
       isAnimated: false,
+      showModal: false,
+      editingUser: null,
       users: [],
       areas: [],
       expertises: [],
@@ -163,9 +165,6 @@ export default {
         { value: "tutor", name: "Tutor" },
         { value: "courseLeader", name: "Course Leader" },
       ],
-      editingUserId: null,
-      showModal: false,
-      editingUser: null,
       columns: [
         { label: "Name", field: "fullName" },
         { label: "Email", field: "email" },
@@ -251,7 +250,6 @@ export default {
       }
     },
     cancelEdit() {
-      this.editingUserId = null;
       this.showModal = false;
       this.editingUser = null;
     },

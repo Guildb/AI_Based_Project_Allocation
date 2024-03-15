@@ -173,6 +173,29 @@ def create_table_tutor_expertise_if_not_exists():
         return f"Unable to create table: {e}"
     finally:
             DBPool.get_instance().putconn(conn)
+            
+def create_table_project_expertise_if_not_exists():
+    try:
+        with DBPool.get_instance().getconn() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'project_expertise')")
+                table_exists = cur.fetchone()[0]
+                if not table_exists:
+                    cur.execute("""
+                        CREATE TABLE "project_expertise" (
+                            id SERIAL PRIMARY KEY,
+                            project_id INTEGER REFERENCES "projects" (id),
+                            expertise_id 0.INTEGER REFERENCES "expertises" (id)
+                        )
+                    """)
+                    conn.commit()
+                    return "Table 'project_expertise' created successfully."
+                else:
+                    return "Table 'project_expertise' already exists."
+    except psycopg2.Error as e:
+        return f"Unable to create table: {e}"
+    finally:
+            DBPool.get_instance().putconn(conn)
 
 def create_table_projects_if_not_exists():
     try:
@@ -189,7 +212,6 @@ def create_table_projects_if_not_exists():
                             student_id INTEGER REFERENCES "students" (id),
                             tutor_id INTEGER REFERENCES "tutors" (id),
                             area_id INTEGER REFERENCES "areas" (id),
-                            expertise_id INTEGER REFERENCES "expertises" (id),
                             alocated BOOLEAN NOT NULL DEFAULT FALSE
                         )
                     """)
@@ -367,15 +389,42 @@ def store_tutor_expertise_in_database(tutor_id, expertise_id):
     finally:
             DBPool.get_instance().putconn(conn)
 
-def store_projects_in_database(name, description, student_id, tutor_id, area_id, expertise_id, alocated):
+def store_project_expertise_in_database(project_id, expertise_id):
     try:
         with DBPool.get_instance().getconn() as conn:
             with conn.cursor() as cur:
                 try:
                     cur.execute("""
-                        INSERT INTO "projects" (name, description, student_id, tutor_id, area_id, expertise_id, alocated)
+                        INSERT INTO "project_expertise" (project_id, expertise_id)
+                        VALUES (%s, %s)
+                    """, (project_id, expertise_id))
+                    conn.commit()
+                    print("project_expertise stored successfully")
+                    return "project_expertise stored successfully."
+                except psycopg2.Error as e:
+                    logger.error(f"Failed to insert project_expertise: {e}", exc_info=True)  # Log the error with stack trace
+                    # Rollback the transaction on error
+                    conn.rollback() 
+                    return f"Failed to insert project_expertise:", 500
+                except Exception as e:
+                    logger.exception(f"Unexpected error: {e}")  # Log unexpected errors with full context 
+                    # Rollback the transaction on error
+                    conn.rollback() 
+                    return f"Unexpected error: {e}", 500
+    except psycopg2.Error as e:
+        return f"Unable to create link: {e}"
+    finally:
+            DBPool.get_instance().putconn(conn)
+
+def store_projects_in_database(name, description, student_id, tutor_id, area_id, alocated):
+    try:
+        with DBPool.get_instance().getconn() as conn:
+            with conn.cursor() as cur:
+                try:
+                    cur.execute("""
+                        INSERT INTO "projects" (name, description, student_id, tutor_id, area_id, alocated)
                         VALUES (%s, %s, %s, %s, %s, %s, %s)
-                    """, (name, description, student_id, tutor_id, area_id, expertise_id, alocated))
+                    """, (name, description, student_id, tutor_id, area_id, alocated))
                     conn.commit()
                     print("project stored successfully")
                     return "project stored successfully."

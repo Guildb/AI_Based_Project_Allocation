@@ -4,7 +4,7 @@
   >
     <ul class="flex justify-center space-x-4">
       <li>
-        <router-link to="/" v-slot="{ isActive }">
+        <router-link to="/dashboard" v-slot="{ isActive }">
           <a
             :class="[
               'text-slate-700 hover:text-blue-500 font-semibold',
