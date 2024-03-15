@@ -31,7 +31,8 @@ class DBPool:
                                                            port=DB_PORT,
                                                            database=DB_NAME)
         return DBPool._instance
- 
+
+#functions to create tables
 def create_table_users_if_not_exists():
     try:
         with DBPool.get_instance().getconn() as conn:
@@ -224,6 +225,8 @@ def create_table_projects_if_not_exists():
     finally:
             DBPool.get_instance().putconn(conn)
 
+
+#functions to stode data in database
 def store_user_in_database(firstName, lastName, email, hashed_password, typeIn):
     try:
         with DBPool.get_instance().getconn() as conn:
@@ -416,18 +419,23 @@ def store_project_expertise_in_database(project_id, expertise_id):
     finally:
             DBPool.get_instance().putconn(conn)
 
-def store_projects_in_database(name, description, student_id, tutor_id, area_id, alocated):
+def store_projects_in_database(name, description, student_id, tutor_id, area_id):
     try:
         with DBPool.get_instance().getconn() as conn:
             with conn.cursor() as cur:
+                alocated = False
+                if student_id and tutor_id:
+                    alocated = True
+                
                 try:
                     cur.execute("""
                         INSERT INTO "projects" (name, description, student_id, tutor_id, area_id, alocated)
                         VALUES (%s, %s, %s, %s, %s, %s, %s)
                     """, (name, description, student_id, tutor_id, area_id, alocated))
+                    project_id = cur.fetchone()[0]
                     conn.commit()
                     print("project stored successfully")
-                    return "project stored successfully."
+                    return project_id, 200
                 except psycopg2.Error as e:
                     logger.error(f"Failed to insert project: {e}", exc_info=True)  # Log the error with stack trace
                     # Rollback the transaction on error
@@ -444,7 +452,7 @@ def store_projects_in_database(name, description, student_id, tutor_id, area_id,
             DBPool.get_instance().putconn(conn)
        
 
-    
+#functions to manipulate the data   
 def change_user_type_in_database(cur, userId, newType):
     try:
         with DBPool.get_instance().getconn() as conn:
@@ -525,52 +533,37 @@ def delete_old_user(cur, oldType, id):
         raise ValueError(f"Error deleting old user: {e}")
 
 def update_user(user):
-    logging.info("Starting update_user with user data: %s", user)
-
     try:
         with DBPool.get_instance().getconn() as conn:
             with conn.cursor() as cur:
                 conn.autocommit = False  # Disable autocommit for transaction control
-                logging.info("Transaction started for user: %s", user['id'])
-
                 current_user_data = fetch_current_user_data(cur, user['id'])
                 if not current_user_data:
                     raise ValueError("User not found.")
                 # Compare and update details if necessary
                 if current_user_data['slots'] != user.get('slots') or current_user_data['areaId'] != user.get('areaId'):
                     change_tutor_details(cur, user)
-
                 if current_user_data['type'] != user.get('type'):
                     # User type has changed.
                     if user['type'] == "student":
-                        logging.info("Changing type to student: %s", user['id'])
                         delete_old_expertises(cur, user)
                         conn.commit()
                         change_user_type_db(user['id'], user['type'])
                     else:
-                        logging.info("Changing type to course leader: %s", user['id'])
                         delete_old_expertises(cur, user)
                         add_new_expertises(cur, user)
                         conn.commit()
                         change_user_type_db(user['id'], user['type'])
                 else:
-                    logging.info("TYPE NOT CHANGED: %s", user['id'])
                     # If the user type hasn't changed but you still need to perform some operations.
                     delete_old_expertises(cur, user)
                     add_new_expertises(cur, user)
                     conn.commit()
-                    
-                logging.info("Committing transaction for user: %s", user['id'])
-
             return True, "User updated successfully"
     except ValueError as e:
-        logging.error("Failed to update user: %s, error: %s", user['id'], e)
-
         conn.rollback()  # Rollback transaction on specific subfunction error
         return False, str(e)  # Return error message from subfunction
     except Exception as e:
-        logging.error("Failed to update user: %s, error: %s", user['id'], e)
-
         conn.rollback()  # Rollback on any other error
         return False, f"Unexpected error: {e}"
     finally:
@@ -602,26 +595,29 @@ def add_new_expertises(cur, user):
     except Exception as e:
         raise ValueError(f"Error adding new expertises: {e}")
 
-def check_user_email(email):
+def get_user_credentials(email):
+    if not email:
+        return False, "Email is required."
     with DBPool.get_instance().getconn() as conn:
         with conn.cursor() as cur:
-            cur.execute('SELECT EXISTS (SELECT 1 FROM "users" WHERE email = %s)', (email,))
-            user_exists = cur.fetchone()[0]
-            return user_exists
-
-def verify_password(email, password):
-    if not email or not password:
-        return False
-    if not check_user_email(email):
-        return False
-    with DBPool.get_instance().getconn() as conn:
-        with conn.cursor() as cur:
-            cur.execute('SELECT password FROM "users" WHERE email = %s', (email,))
-            print("Password verified", file=sys.stderr)
-            stored_password = cur.fetchone()[0]
-            print("the password hash from DB is", stored_password, file=sys.stderr) 
-            # Ensure the stored password hash is encoded to bytes
-            return stored_password.encode('utf-8') if isinstance(stored_password, str) else stored_password
+            try:
+                # Fetch user id and password where the email matches
+                cur.execute('SELECT id, password FROM "users" WHERE email = %s', (email,))
+                result = cur.fetchone()
+                if result:
+                    user_id, stored_password = result
+                    print("Password verified for user ID: ", user_id, file=sys.stderr)
+                    # Ensure the stored password hash is encoded to bytes
+                    encoded_password = stored_password.encode('utf-8') if isinstance(stored_password, str) else stored_password
+                    return user_id, encoded_password
+                else:
+                    return False, "User not found."
+            except Exception as e:
+                print(f"An error occurred: {e}", file=sys.stderr)
+                return False, "An error occurred while fetching user credentials."
+            finally:
+                # Make sure to release the connection back to the pool
+                DBPool.putconn(conn)
 
 def fetch_current_user_data(cur, user_id):
     cur.execute("""
@@ -658,19 +654,40 @@ def fetch_current_user_data(cur, user_id):
     else:
         return None
 
-           
+def add_project(project):
+    logging.info("Starting adding project with project: %s", project)
 
+    try:
+        with DBPool.get_instance().getconn() as conn:
+            with conn.cursor() as cur:
+                conn.autocommit = False  # Disable autocommit for transaction control
+                logging.info("Transaction started for project: %s", project['name'])
 
+                project_id, success = store_projects_in_database(project['name'], project['description'], project['student_id'], project['tutor_id'], project['area_id'])
 
+                logging.info("Adding new expertyises")
+                try:
+                    for expertise_id in project['expertises']:
+                        cur.execute("INSERT INTO project_expertise (project_id, expertise_id) VALUES (%s, %s)", 
+                                    (project_id, expertise_id))
+                except Exception as e:
+                    raise ValueError(f"Error adding new expertises: {e}")
 
+                    
+                conn.commit()
+                    
+                logging.info("Committing transaction for user: %s", project['name'])
 
+            return True, "User updated successfully"
+    except ValueError as e:
+        logging.error("Failed to update user: %s, error: %s", project['name'], e)
 
-def insert_default_data():
-    store_user_in_database("defaultuser", "defaultuser","defaultuser","defaultuser")
-    store_areas_in_database("defaultarea")
-    store_expertises_in_database("defaultexpertise","defaultexpertise",1)
-    store_tutors_in_database(5, 1,1)
-    store_students_in_database("defaultstudent", 1)
-    store_tutor_expertise_in_database(1,1)
-    store_projects_in_database("defaultProject","defaultProject",1,1,1,1,True)
+        conn.rollback()  # Rollback transaction on specific subfunction error
+        return False, str(e)  # Return error message from subfunction
+    except Exception as e:
+        logging.error("Failed to update user: %s, error: %s", project['name'], e)
 
+        conn.rollback()  # Rollback on any other error
+        return False, f"Unexpected error: {e}"
+    finally:
+        DBPool.get_instance().putconn(conn)

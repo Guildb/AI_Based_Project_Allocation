@@ -1,4 +1,5 @@
-from flask import request, jsonify, make_response
+from flask import request, jsonify, make_response, session
+from flask_session import Session
 from flask_cors import CORS
 import traceback
 from database import *
@@ -7,7 +8,8 @@ import logging
 import bcrypt
 
 def configure_routes(app):
-    
+
+        
     def _build_cors_preflight_response():
         response = make_response()
         response.headers['Access-Control-Allow-Origin'] = '*'
@@ -47,6 +49,11 @@ def configure_routes(app):
             logger.exception(f"Exception in signup: {e}")
             return jsonify({'error': 'Failed to signup'}), 500
 
+    @app.route('/logout', methods=['POST', 'OPTIONS'])
+    def logout():
+        #session.pop('user_id', None) # Remove the user ID from the session
+        return jsonify({'message': 'Logged out successfully'}), 200
+
     @app.route('/login', methods=['POST', 'OPTIONS'])
     def login():
         logging.basicConfig(level=logging.DEBUG)
@@ -66,12 +73,20 @@ def configure_routes(app):
             if not all([email, password]):
                 return jsonify({'error': 'Please provide email and password'}), 400
 
-            password_hash = verify_password(email, password)
-            password = password.encode('utf-8')
-            print(f"Received login request for user: {password}", file=sys.stderr)
+            credentials  = get_user_credentials(email)
+            if credentials and isinstance(credentials, tuple) and len(credentials) == 2:
+                user_id, password_hash = credentials
+                print(f"User ID: {user_id}")
+                print(f"Encoded Password: {password_hash}")
+                
+                password = password.encode('utf-8')
+                print(f"Received login request for user: {password}", file=sys.stderr)
 
-            if password_hash and bcrypt.checkpw(password, password_hash):
-                return jsonify({'Success': 'Logged in'}), 200
+                if password_hash and bcrypt.checkpw(password, password_hash):
+                    #session['user_id'] = user_id
+                    return jsonify({'Success': 'Logged in', 'user_id': user_id}), 200
+                
+            
             else:
                 return jsonify({'error': 'Invalid email or password'}), 401
 
@@ -164,4 +179,21 @@ def configure_routes(app):
             app.logger.error(f"Unexpected error while changing user type: {e}", exc_info=True)
             return jsonify({'error': "An unexpected error occurred"}), 500
 
+    @app.route('/addProject', methods=['POST', 'OPTIONS'])
+    def addProject():
+        if request.method == 'OPTIONS':
+            return _build_cors_preflight_response()
+        
+        try:
+            data = request.get_json()
+            project = data.get('project')
+            success, message = add_project(project)
+
+            if success:
+                return jsonify({'message': message}), 200
+            else:
+                return jsonify({'error': message}), 500
+        except Exception as e:
+            app.logger.error(f"Unexpected error while adding project: {e}", exc_info=True)
+            return jsonify({'error': "An unexpected error occurred"}), 500
 

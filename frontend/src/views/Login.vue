@@ -127,6 +127,7 @@ export default {
               throw new Error(err.error); // Use the 'error' key from your JSON response, or adjust based on your backend structure
             });
           }
+          
           return response.json();
         })
         .then((data) => {
