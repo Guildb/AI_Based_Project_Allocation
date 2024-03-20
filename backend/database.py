@@ -1,11 +1,16 @@
 import psycopg2
 from psycopg2 import pool
 import jwt
+from functools import wraps
 import datetime
 import logging
 import os
 import sys
+from datetime import datetime, timedelta
 from dotenv import load_dotenv
+from flask import request, jsonify, make_response
+
+
 
 logger = logging.getLogger(__name__) 
 load_dotenv()
@@ -15,6 +20,8 @@ DB_PASSWORD = os.getenv("DB_PASSWORD")
 DB_HOST = os.getenv("DB_HOST")
 DB_PORT = os.getenv("DB_PORT")
 DB_NAME = os.getenv("DB_NAME")
+SESSION_KEY = os.getenv("SESSION_SECRET")
+ALGORITHM = os.getenv("ALGORITHM")
 # DATABASE_URL = os.getenv("DATABASE_URL")
 
 class DBPool:
@@ -31,6 +38,13 @@ class DBPool:
                                                            port=DB_PORT,
                                                            database=DB_NAME)
         return DBPool._instance
+
+def _build_cors_preflight_response():
+        response = make_response()
+        response.headers['Access-Control-Allow-Origin'] = '*'
+        response.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+        response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+        return response
 
 #functions to create tables
 def create_table_users_if_not_exists():
@@ -452,6 +466,48 @@ def store_projects_in_database(name, description, student_id, tutor_id, area_id)
             DBPool.get_instance().putconn(conn)
        
 
+#session functions
+def create_token(user_id, time):
+    payload = {
+        "user_id": user_id,
+        "exp": datetime.utcnow() + timedelta(hours= time)  # Token expires in 1 day
+    }
+    token = jwt.encode(payload, SESSION_KEY, algorithm=ALGORITHM)
+    return token
+
+def validate_token(token):
+    try:
+        payload = jwt.decode(token, SESSION_KEY, algorithms=[ALGORITHM])
+        return payload
+    except jwt.ExpiredSignatureError:
+        return None  
+    except jwt.InvalidTokenError:
+        return None 
+    
+def token_required(f):
+    @wraps(f)  # Preserve the metadata of the original function
+    def decorated(*args, **kwargs):
+        # Existing code for token validation
+        token = None
+        if request.method == 'OPTIONS':
+            return _build_cors_preflight_response()
+        if 'Authorization' in request.headers:
+            token = request.headers['Authorization'].split(" ")[1]
+            
+
+        if not token:
+            return jsonify({'message': 'Token is missing!'}), 401
+
+        try:
+            data = validate_token(token)
+            current_user = data['user_id']
+        except:
+            return jsonify({'message': 'Token is invalid!'}), 401
+
+        return f(current_user, *args, **kwargs)
+
+    return decorated
+
 #functions to manipulate the data   
 def change_user_type_in_database(cur, userId, newType):
     try:
@@ -609,7 +665,7 @@ def get_user_credentials(email):
                     print("Password verified for user ID: ", user_id, file=sys.stderr)
                     # Ensure the stored password hash is encoded to bytes
                     encoded_password = stored_password.encode('utf-8') if isinstance(stored_password, str) else stored_password
-                    return user_id, encoded_password
+                    return (user_id, encoded_password)
                 else:
                     return False, "User not found."
             except Exception as e:
@@ -617,7 +673,7 @@ def get_user_credentials(email):
                 return False, "An error occurred while fetching user credentials."
             finally:
                 # Make sure to release the connection back to the pool
-                DBPool.putconn(conn)
+                DBPool.get_instance().putconn(conn)
 
 def fetch_current_user_data(cur, user_id):
     cur.execute("""
@@ -665,7 +721,7 @@ def add_project(project):
 
                 project_id, success = store_projects_in_database(project['name'], project['description'], project['student_id'], project['tutor_id'], project['area_id'])
 
-                logging.info("Adding new expertyises")
+                logging.info("Adding new expertises")
                 try:
                     for expertise_id in project['expertises']:
                         cur.execute("INSERT INTO project_expertise (project_id, expertise_id) VALUES (%s, %s)", 
@@ -691,3 +747,4 @@ def add_project(project):
         return False, f"Unexpected error: {e}"
     finally:
         DBPool.get_instance().putconn(conn)
+

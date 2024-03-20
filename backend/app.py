@@ -17,7 +17,8 @@ app = Flask(__name__)
 
 ## POOL IS IN THE DATABASE FILE
 # Allow CORS for requests from 'http://localhost:8080'
-CORS(app)
+CORS(app, supports_credentials=True, allow_headers=["Content-Type", "Authorization", "X-Requested-With"])
+
 
 configure_routes(app)
 
@@ -210,6 +211,29 @@ def get_tutor_expertise():
         if conn:
             DBPool.get_instance().putconn(conn)
 
+@app.route('/project_expertise', methods=['GET'])
+def get_project_expertise():
+    try:
+        with DBPool.get_instance().getconn() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT * FROM \"project_expertise\"")
+                rows = cur.fetchall()
+                tutor_expertises = []
+                for row in rows:
+                    tutor_expertise = {
+                        'id': row[0],
+                        'project_id': row[1],
+                        'expertise_id': row[2]
+                    }
+                    tutor_expertises.append(tutor_expertise)
+                return jsonify(tutor_expertises), 200
+    except Exception as e:
+        logger.exception(f"Error fetching tutors: {e}")
+        return jsonify({'error': 'Internal Server Error'}), 500
+    finally:
+        if conn:
+            DBPool.get_instance().putconn(conn)
+
 @app.route('/projects', methods=['GET'])
 def get_projects():
     try:
@@ -276,6 +300,155 @@ def get_student():
     finally:
         if conn:
             DBPool.get_instance().putconn(conn)
+
+@app.route('/get_current_user', methods=['POST'])
+def get_current_user():
+    data = request.get_json()
+    token = data.get('token')
+    if not token:
+        return jsonify({'error': "Unauthorized"}), 401
+    user = validate_token(token)
+    user_id = user.get('user_id')
+    if not user_id:
+        return jsonify({'error': "Unauthorized"}), 401
+
+    try:
+        with DBPool.get_instance().getconn() as conn:
+            with conn.cursor() as cur:
+                # Fetch common user details first
+                cur.execute("""SELECT id, firstName, lastName, type 
+                            FROM "users" 
+                            WHERE id = %s""", (user_id,))
+                user_row = cur.fetchone()
+
+                if not user_row:
+                    return jsonify({'error': 'User not found'}), 404
+
+                user = {
+                    'id': user_row[0],
+                    'firstName': user_row[1],  
+                    'lastName': user_row[2],   
+                    'type': user_row[3]
+                }
+
+                if user_row[3] == "student":
+                    cur.execute("""SELECT id, COALESCE(student_number, 'NaN') AS student_number
+                                FROM "students" 
+                                WHERE user_id = %s""", (user_id,))
+                    student_row = cur.fetchone()
+                    if not student_row:
+                        return jsonify({'error': 'Student not found'}), 404
+                    
+                    user.update({
+                        'student_number': student_row[1],
+                        'student_id' : student_row[0],
+                    })
+                    
+                    cur.execute("""SELECT *
+                                FROM "projects"
+                                WHERE student_id = %s""", (student_row[0],))
+                    project_row = cur.fetchone()
+                    if not project_row:
+                        project = None
+                    else:
+                        cur.execute("""
+                        SELECT expertise_id
+                        FROM "project_expertise" pe
+                        LEFT JOIN "expertises" e ON pe.expertise_id = e.id
+                        WHERE pe.project_id = %s
+                        """, (project_row[0],))
+                        expertises_results = cur.fetchall()
+                        if expertises_results:
+                            expertises = [expertise[0] for expertise in expertises_results]
+                        else:
+                            expertises = []
+                            
+                        project = {
+                            'id': project_row[0],
+                            'name': project_row[1],
+                            'description': project_row[2],
+                            'student_id': project_row[3],
+                            'tutor_id': project_row[4],
+                            'area_id': project_row[5],
+                            'alocated': project_row[6],
+                            'expertises': expertises
+                        }
+                    
+                    user.update({
+                        'project': project
+                    })
+                    
+                else:
+                    cur.execute("""SELECT id, COALESCE(slots, '0') AS slots, area_id
+                                FROM "tutors" 
+                                WHERE user_id = %s""", (user_id,))
+                    tutor_row= cur.fetchone()
+                    if not tutor_row:
+                        return jsonify({'error': 'Tutor not found'}), 404
+                    user.update({
+                        'tutor_id': tutor_row[0],
+                        'slots' : tutor_row[1],
+                        'area_id' : tutor_row[2] 
+                    })
+                    cur.execute("""
+                        SELECT expertise_id
+                        FROM "tutor_expertise" te
+                        LEFT JOIN "expertises" e ON te.expertise_id = e.id
+                        WHERE te.tutor_id = %s
+                    """, (tutor_row[0],))
+                    expertises_results = cur.fetchall()
+                    if expertises_results:
+                        expertises = [expertise[0] for expertise in expertises_results]
+                    else:
+                        expertises = []
+                        user.update({
+                            'expertises': expertises
+                        })
+                    cur.execute("""SELECT *
+                                FROM "projects"
+                                WHERE tutor_id = %s""", (tutor_row[0],))
+                    projects_rows = cur.fetchall()
+                    if not projects_rows:
+                        tutor_projects = None
+                    else:
+                        tutor_projects = []
+                        for row in projects_rows:
+                            cur.execute("""
+                                SELECT expertise_id
+                                FROM "project_expertise" pe
+                                LEFT JOIN "expertises" e ON pe.expertise_id = e.id
+                                WHERE pe.project_id = %s
+                            """, (row[0],))
+                            expertises_results = cur.fetchall()
+                            if expertises_results:
+                                expertises = [expertise[0] for expertise in expertises_results]
+                            else:
+                                expertises = []
+                            tutor_projects.append({
+                                'id': project_row[0],
+                                'name': project_row[1],
+                                'description': project_row[2],
+                                'student_id': project_row[3],
+                                'tutor_id': project_row[4],
+                                'area_id': project_row[5],
+                                'alocated': project_row[6],
+                                'expertises': expertises
+                            })
+                    
+                    user.update({
+                        'projects': tutor_projects
+                    })
+                        
+
+                    
+                return jsonify(user), 200
+    except Exception as e:
+        logger.exception("Error fetching user details: %s", e)
+        return jsonify({'error': 'Internal Server Error'}), 500
+    finally:
+        DBPool.get_instance().putconn(conn)
+
+
 
 
 if __name__ == '__main__':

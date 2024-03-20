@@ -1,15 +1,15 @@
-from flask import request, jsonify, make_response, session
-from flask_session import Session
+from flask import request, jsonify, make_response
 from flask_cors import CORS
 import traceback
 from database import *
+from app import *
 import sys
 import logging
 import bcrypt
 
 def configure_routes(app):
-
-        
+    logging.basicConfig(level=logging.DEBUG)
+    
     def _build_cors_preflight_response():
         response = make_response()
         response.headers['Access-Control-Allow-Origin'] = '*'
@@ -50,15 +50,15 @@ def configure_routes(app):
             return jsonify({'error': 'Failed to signup'}), 500
 
     @app.route('/logout', methods=['POST', 'OPTIONS'])
-    def logout():
-        #session.pop('user_id', None) # Remove the user ID from the session
+    @token_required
+    def logout(current_user):
         return jsonify({'message': 'Logged out successfully'}), 200
 
     @app.route('/login', methods=['POST', 'OPTIONS'])
     def login():
-        logging.basicConfig(level=logging.DEBUG)
+        
 
-        print("Received login request", file=sys.stderr)
+        logging.info("Login route hit")
         if request.method == 'OPTIONS':
             response = make_response(jsonify({'status': 'OK'}), 200)
             response.headers['Access-Control-Allow-Origin'] = 'http://localhost:8080'
@@ -69,38 +69,43 @@ def configure_routes(app):
             data = request.get_json()
             email = data.get('email')
             password = data.get('password')
-
-            if not all([email, password]):
-                return jsonify({'error': 'Please provide email and password'}), 400
-
-            credentials  = get_user_credentials(email)
-            if credentials and isinstance(credentials, tuple) and len(credentials) == 2:
-                user_id, password_hash = credentials
-                print(f"User ID: {user_id}")
-                print(f"Encoded Password: {password_hash}")
-                
-                password = password.encode('utf-8')
-                print(f"Received login request for user: {password}", file=sys.stderr)
-
-                if password_hash and bcrypt.checkpw(password, password_hash):
-                    #session['user_id'] = user_id
-                    return jsonify({'Success': 'Logged in', 'user_id': user_id}), 200
-                
+            time = data.get('time')
             
-            else:
+            logging.info(f"Attempting to log in user: {email}")
+            
+            if not email or not password:
+                return jsonify({'error': 'Please provide email and password'}), 400
+            
+            credentials  = get_user_credentials(email)
+            
+            logging.info(f"got user credentials: {credentials}")
+            
+            if not credentials:
                 return jsonify({'error': 'Invalid email or password'}), 401
+            
+            user_id, password_hash = credentials
+            logging.info(f"Found user ID {user_id} for email: {email}")
+            password = password.encode('utf-8')
+            
+            if bcrypt.checkpw(password, password_hash):
+                logging.info(f"Password verified for user ID: {user_id}")
+                token = create_token(user_id, time )
+                return jsonify({'token': token}), 200
+                
 
         except Exception as e:
             # Consider logging the exception here for debugging
+            logging.exception("An error occurred during the login process:")
             return jsonify({'error': 'Failed to login'}), 500
 
     @app.route('/changeUserType', methods=['POST'])
-    def change_user_type():
+    @token_required
+    def change_user_type(current_user):
         data = request.get_json()
         userId = data.get('id')
         newType = data.get('newType')
 
-        if userId is None or newType is None:
+        if not userId or not newType:
             return jsonify({'error': "Missing 'id' or 'newType' in request"}), 400
 
         try:
@@ -115,7 +120,10 @@ def configure_routes(app):
             return jsonify({'error': "An unexpected error occurred"}), 500
 
     @app.route('/addArea', methods=['POST', 'OPTIONS'])
-    def addArea():
+    @token_required
+    def addArea(current_user):
+        logging.info("adding Area")
+        logging.info(request.headers)
         if request.method == 'OPTIONS':
             return _build_cors_preflight_response()
         
@@ -138,7 +146,8 @@ def configure_routes(app):
             return jsonify({'error': 'Failed to add Area'}), 500
 
     @app.route('/addExpertise', methods=['POST', 'OPTIONS'])
-    def addExpertise():
+    @token_required
+    def addExpertise(current_user):
         if request.method == 'OPTIONS':
             return _build_cors_preflight_response()
         
@@ -162,7 +171,8 @@ def configure_routes(app):
             return jsonify({'error': 'Failed to add expertise'}), 500
 
     @app.route('/changeTutors', methods=['POST', 'OPTIONS'])
-    def change_tutor():
+    @token_required
+    def change_tutor(current_user):
         if request.method == 'OPTIONS':
             return _build_cors_preflight_response()
 
@@ -180,7 +190,8 @@ def configure_routes(app):
             return jsonify({'error': "An unexpected error occurred"}), 500
 
     @app.route('/addProject', methods=['POST', 'OPTIONS'])
-    def addProject():
+    @token_required
+    def addProject(current_user):
         if request.method == 'OPTIONS':
             return _build_cors_preflight_response()
         

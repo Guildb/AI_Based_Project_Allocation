@@ -45,9 +45,14 @@
           <span v-else-if="props.column.field === 'actions'">
             <button
               @click="editUser(props.row)"
-              class="bg-green-700 hover:bg-green-500 text-white font-bold py-2 px-4 rounded"
+              class="w-full sm:w-auto bg-slate-700 hover:bg-green-700 flex-1 justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
               Edit
+            </button>
+            <button
+              class="w-full sm:w-auto bg-slate-700 hover:bg-red-700 flex-1 justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              Delete
             </button>
           </span>
         </template>
@@ -104,7 +109,7 @@
           <span class="text-lg font-semibold">Expertises:</span>
           <div>
             <div
-              v-for="expertise in expertises"
+              v-for="expertise in filteredExpertises"
               :key="expertise.id"
               class="flex items-center my-1"
             >
@@ -125,13 +130,13 @@
         <div class="flex justify-center space-x-2">
           <button
             @click="saveUser()"
-            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            class="w-full sm:w-auto bg-slate-700 hover:bg-green-700 flex-1 justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
             Save
           </button>
           <button
             @click="cancelEdit()"
-            class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+            class="w-full sm:w-auto bg-slate-700 hover:bg-red-700 inline-flex items-center justify-center flex-1 py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
             Cancel
           </button>
@@ -225,6 +230,7 @@ export default {
       this.showModal = true;
     },
     async saveUser() {
+      const token = localStorage.getItem("token");
       try {
         console.log(this.editingUser);
         const response = await fetch(
@@ -232,6 +238,7 @@ export default {
           {
             method: "POST",
             headers: {
+              Authorization: `Bearer ${token}`,
               "Content-Type": "application/json",
             },
             body: JSON.stringify({ user: this.editingUser }),
@@ -252,6 +259,18 @@ export default {
     cancelEdit() {
       this.showModal = false;
       this.editingUser = null;
+    },
+  },
+  computed: {
+    filteredExpertises() {
+      // If an area is selected, filter expertises by the selected areaId
+      if (this.editingUser.areaId) {
+        return this.expertises.filter(
+          (expertise) => expertise.area_id === this.editingUser.areaId
+        );
+      }
+      // If no area is selected, return all expertises
+      return this.expertises;
     },
   },
   mounted() {

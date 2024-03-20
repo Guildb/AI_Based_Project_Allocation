@@ -16,7 +16,7 @@
         <template v-slot:table-actions>
           <button
             @click="toggleInput"
-            class="bg-green-700 hover:bg-green-500 text-white font-bold py-2 px-4 rounded"
+            class="w-full sm:w-auto bg-slate-700 hover:bg-green-700 flex-1 justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
             Add Area
           </button>
@@ -27,7 +27,7 @@
           </span>
           <span v-else-if="props.column.field === 'actions'">
             <button
-              class="bg-red-700 hover:bg-red-500 text-white font-bold py-2 px-4 rounded"
+              class="w-full sm:w-auto bg-slate-700 hover:bg-red-700 flex-1 justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
               Delete
             </button>
@@ -52,7 +52,7 @@
         <div class="flex justify-center space-x-2">
           <button
             @click="addArea()"
-            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            class="w-full sm:w-auto bg-slate-700 hover:bg-green-700 flex-1 justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
             Save
           </button>
@@ -63,7 +63,7 @@
               newAcronym = '';
               newArea = null;
             "
-            class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+            class="w-full sm:w-auto bg-slate-700 hover:bg-red-700 inline-flex items-center justify-center flex-1 py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
             Cancel
           </button>
@@ -105,6 +105,7 @@ export default {
   methods: {
     addArea() {
       const areaName = this.newName.trim();
+      const token = localStorage.getItem("token");
       if (!areaName) {
         alert("Area name cannot be empty.");
         return;
@@ -114,6 +115,7 @@ export default {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ name: areaName }),
       })

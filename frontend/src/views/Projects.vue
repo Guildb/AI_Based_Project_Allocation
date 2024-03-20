@@ -14,6 +14,14 @@
         styleClass="vgt-table striped condensed"
         theme="nocturnal"
       >
+        <template v-slot:table-actions>
+          <button
+            @click="toggleInput"
+            class="w-full sm:w-auto bg-slate-700 hover:bg-green-700 flex-1 justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          >
+            Add Project
+          </button>
+        </template>
         <template v-slot:body="{ row, column, rowIndex }">
           <span v-if="column.field === 'expand'">
             <button @click="toggleExpand(rowIndex)">
@@ -38,6 +46,11 @@
               class="bg-green-700 hover:bg-green-500 text-white font-bold py-2 px-4 rounded"
             >
               Edit
+            </button>
+            <button
+              class="w-full sm:w-auto bg-slate-700 hover:bg-red-700 flex-1 justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              Delete
             </button>
           </span>
         </template>

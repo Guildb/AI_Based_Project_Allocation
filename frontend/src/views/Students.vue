@@ -52,20 +52,26 @@
             <button
               v-if="editingUserId !== props.row.id"
               @click="editUser(props.row)"
-              class="bg-green-700 hover:bg-green-500 text-white font-bold py-2 px-4 rounded"
+              class="bg-slate-700 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
             >
               Edit
+            </button>
+            <button
+              v-if="editingUserId !== props.row.id"
+              class="w-full sm:w-auto bg-slate-700 hover:bg-red-700 flex-1 justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              Delete
             </button>
             <div v-if="editingUserId === props.row.id">
               <button
                 @click="changeUserType(props.row)"
-                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                class="w-full sm:w-auto bg-slate-700 hover:bg-green-700 flex-1 justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
               >
                 Save
               </button>
               <button
                 @click="cancelEdit()"
-                class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+                class="w-full sm:w-auto bg-slate-700 hover:bg-red-700 inline-flex items-center justify-center flex-1 py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
               >
                 Cancel
               </button>
@@ -116,6 +122,7 @@ export default {
 
   methods: {
     async changeUserType(user) {
+      const token = localStorage.getItem("token");
       if (user.type !== user.newType) {
         try {
           const response = await fetch(
@@ -123,6 +130,7 @@ export default {
             {
               method: "POST",
               headers: {
+                Authorization: `Bearer ${token}`,
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({ id: user.id, newType: user.newType }),

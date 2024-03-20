@@ -55,6 +55,7 @@
               <input
                 id="remember-me"
                 name="remember-me"
+                v-model="remember"
                 type="checkbox"
                 class="h-4 w-4 text-slate-700 focus:ring-green-700 border-gray-300 rounded"
               />
@@ -101,6 +102,7 @@ export default {
     return {
       email: "",
       password: "",
+      remember: false,
       isAnimated: false,
     };
   },
@@ -111,6 +113,11 @@ export default {
   },
   methods: {
     login() {
+      let newTime = 12;
+      if (this.remember) {
+        newTime = 72;
+      }
+      console.log("token time:", newTime);
       fetch(`${process.env.VUE_APP_BACKEND_URL}/login`, {
         method: "POST",
         headers: {
@@ -119,6 +126,7 @@ export default {
         body: JSON.stringify({
           email: this.email,
           password: this.password,
+          time: newTime,
         }),
       })
         .then((response) => {
@@ -127,12 +135,14 @@ export default {
               throw new Error(err.error); // Use the 'error' key from your JSON response, or adjust based on your backend structure
             });
           }
-          
+
           return response.json();
         })
         .then((data) => {
           console.log("Login successful:", data);
           // TODO: Handle login success, e.g., storing the session token, if any
+          localStorage.setItem("token", data.token);
+          print(localStorage.getItem("token", data.token));
           this.$router.push("/dashboard");
         })
         .catch((error) => {

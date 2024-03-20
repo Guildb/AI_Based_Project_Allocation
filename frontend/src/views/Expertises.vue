@@ -16,7 +16,7 @@
         <template v-slot:table-actions>
           <button
             @click="toggleInput"
-            class="bg-green-700 hover:bg-green-500 text-white font-bold py-2 px-4 rounded"
+            class="w-full sm:w-auto bg-slate-700 hover:bg-green-700 flex-1 justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
             Add Expertise
           </button>
@@ -33,7 +33,7 @@
           </span>
           <span v-else-if="props.column.field === 'actions'">
             <button
-              class="bg-green-700 hover:bg-green-500 text-white font-bold py-2 px-4 rounded"
+              class="w-full sm:w-auto bg-slate-700 hover:bg-red-700 flex-1 justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
               Delete
             </button>
@@ -73,7 +73,7 @@
         <div class="flex justify-center space-x-2">
           <button
             @click="addExpertise()"
-            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            class="w-full sm:w-auto bg-slate-700 hover:bg-green-700 flex-1 justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
             Save
           </button>
@@ -84,7 +84,7 @@
               newAcronym = '';
               newArea = null;
             "
-            class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+            class="w-full sm:w-auto bg-slate-700 hover:bg-red-700 inline-flex items-center justify-center flex-1 py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
             Cancel
           </button>
@@ -133,6 +133,7 @@ export default {
       const expertiseName = this.newName.trim();
       const expertiseAcronym = this.newAcronym.trim();
       const areaId = this.newArea;
+      const token = localStorage.getItem("token");
       if (!expertiseName) {
         alert("Expertise name is required.");
         return;
@@ -146,6 +147,7 @@ export default {
       fetch(`${process.env.VUE_APP_BACKEND_URL}/addExpertise`, {
         method: "POST",
         headers: {
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
