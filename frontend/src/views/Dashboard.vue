@@ -31,11 +31,15 @@
                 <div v-for="project in user.projects" :key="project">
                   <div>
                     <h3 class="text-lg font-semibold">Project Name</h3>
-                    <p>{{ user.projects.name }}</p>
+                    <p>{{ user.project.name }}</p>
+                  </div>
+                  <div>
+                    <h3 class="text-lg font-semibold">Student Name</h3>
+                    <p>{{ getStudentName(user.project.student_id) }}</p>
                   </div>
                   <div>
                     <h3 class="text-lg font-semibold">Description</h3>
-                    <p>{{ user.projects.description }}</p>
+                    <p>{{ user.project.description }}</p>
                   </div>
                   <div>
                     <h3 class="text-lg font-semibold">Area</h3>
@@ -43,14 +47,7 @@
                   </div>
                   <div>
                     <h3 class="text-lg font-semibold">Expertises</h3>
-                    <ul>
-                      <li
-                        v-for="expertise in user.project.expertises"
-                        :key="expertise"
-                      >
-                        {{ getExpertiseNames(expertise) }}
-                      </li>
-                    </ul>
+                    <p>{{ getExpertiseNames(user.project.expertises) }}</p>
                   </div>
                 </div>
               </div>
@@ -59,27 +56,26 @@
                 v-if="user.project"
               >
                 <div>
-                  <h3 class="text-lg font-semibold">Project Name</h3>
-                  <p>{{ user.project.name }}</p>
-                </div>
-                <div>
-                  <h3 class="text-lg font-semibold">Description</h3>
-                  <p>{{ user.project.description }}</p>
-                </div>
-                <div>
-                  <h3 class="text-lg font-semibold">Area</h3>
-                  <p>{{ getAreaName(user.project.area_id) }}</p>
-                </div>
-                <div>
-                  <h3 class="text-lg font-semibold">Expertises</h3>
-                  <ul>
-                    <li
-                      v-for="expertise in user.project.expertises"
-                      :key="expertise"
-                    >
-                      {{ getExpertiseNames(expertise) }}
-                    </li>
-                  </ul>
+                  <div>
+                    <h3 class="text-lg font-semibold">Project Name</h3>
+                    <p>{{ user.project.name }}</p>
+                  </div>
+                  <div>
+                    <h3 class="text-lg font-semibold">Tutor Name</h3>
+                    <p>{{ getTutorName(user.project.tutor_id) }}</p>
+                  </div>
+                  <div>
+                    <h3 class="text-lg font-semibold">Description</h3>
+                    <p>{{ user.project.description }}</p>
+                  </div>
+                  <div>
+                    <h3 class="text-lg font-semibold">Area</h3>
+                    <p>{{ getAreaName(user.project.area_id) }}</p>
+                  </div>
+                  <div>
+                    <h3 class="text-lg font-semibold">Expertises</h3>
+                    <p>{{ getExpertiseNames(user.project.expertises) }}</p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -106,15 +102,26 @@
           />
         </div>
         <div>
-          <input
+          <textarea
             v-model="newProject.description"
             placeholder="Project Description"
             type="text"
             class="bg-gray-200 text-gray-700 py-1 px-2 rounded w-full"
-          />
+          ></textarea>
+        </div>
+        <div v-if="(this.user.type = 'student')">
+          Pre selected Tutor
+          <select
+            v-model="newProject.tutor_id"
+            class="bg-gray-200 text-gray-700 py-1 px-2 rounded w-full"
+          >
+            <option v-for="tutor in tutors" :key="tutor.id" :value="tutor.id">
+              {{ tutor.firstName }} {{ tutor.lastName }}
+            </option>
+          </select>
         </div>
         <div>
-          Area:
+          Area
           <select
             v-model="newProject.area_id"
             class="bg-gray-200 text-gray-700 py-1 px-2 rounded w-full"
@@ -126,7 +133,7 @@
         </div>
 
         <div class="max-h-48 overflow-y-auto border p-2">
-          <span class="text-lg font-semibold">Expertises:</span>
+          <span class="text-lg font-semibold">Expertises</span>
           <div>
             <div
               v-for="expertise in filteredExpertises"
@@ -181,6 +188,7 @@ export default {
       areas: [],
       expertises: [],
       tutors: [],
+      students: [],
       newProject: {
         name: "",
         description: "",
@@ -198,6 +206,11 @@ export default {
     },
     saveProject() {
       console.log(this.newProject);
+      if (this.user.type === "student") {
+        this.newProject.student_id = this.user.student_id;
+      } else {
+        this.newProject.tutor_id = this.user.tutor_id;
+      }
       if (!this.newProject.name.trim()) {
         alert("Projec name cannot be empty.");
         return;
@@ -277,6 +290,24 @@ export default {
           console.error("There was a problem fetching the tutors data:", error);
         });
     },
+    fetchStudents() {
+      fetch(`${process.env.VUE_APP_BACKEND_URL}/students`)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Network response was not ok");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          this.students = data;
+        })
+        .catch((error) => {
+          console.error(
+            "There was a problem fetching the students data:",
+            error
+          );
+        });
+    },
     getUser() {
       const token = localStorage.getItem("token");
 
@@ -299,6 +330,8 @@ export default {
           this.user = data;
           if (this.user.type === "student") {
             this.fetchTutors();
+          } else {
+            this.fetchStudents();
           }
         })
         .catch((error) => {
@@ -309,6 +342,16 @@ export default {
       this.fetchAreas();
       this.fetchExpertises();
       this.getUser();
+    },
+    getTutorName(tutorId) {
+      const tName = this.tutors.find((tutor) => tutor.tutor_id === tutorId);
+      return tName ? `${tName.firstName} ${tName.lastName}` : "Not Found";
+    },
+    getStudentName(studentId) {
+      const sName = this.students.find(
+        (student) => student.student_id === studentId
+      );
+      return sName ? `${sName.firstName} ${sName.lastName}` : "Not Found";
     },
   },
   computed: {

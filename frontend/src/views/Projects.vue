@@ -10,7 +10,6 @@
         :rows="projects"
         :pagination-options="{ enabled: true }"
         :search-options="{ enabled: true }"
-        :group-options="{ enabled: true }"
         styleClass="vgt-table striped condensed"
         theme="nocturnal"
       >
@@ -22,30 +21,31 @@
             Add Project
           </button>
         </template>
-        <template v-slot:body="{ row, column, rowIndex }">
-          <span v-if="column.field === 'expand'">
-            <button @click="toggleExpand(rowIndex)">
-              {{ expandedRows.includes(rowIndex) ? "Collapse" : "Expand" }}
-            </button>
+        <template v-slot:table-row="props">
+          <span v-if="props.column.field === 'name'">
+            {{ props.row.name }}
           </span>
-          <span v-if="column.field === 'projectName'">
-            {{ row.name }}
+          <span v-else-if="props.column.field === 'studentName'">
+            {{
+              props.row.student_id
+                ? getStudentName(props.row.student_id)
+                : "No student"
+            }}
           </span>
-          <span v-else-if="column.field === 'studentName'">
-            {{ this.getStudentName(row.student_id) }}
+          <span v-else-if="props.column.field === 'tutorName'">
+            {{
+              props.row.tutor_id ? getTutorName(props.row.tutor_id) : "No Tutor"
+            }}
           </span>
-          <span v-else-if="column.field === 'tutorName'">
-            {{ this.getTutorName(row.tutor_id) }}
+          <span v-else-if="props.column.field === 'alocated'">
+            {{ props.row.alocated ? "Alocated" : "Not Alocated" }}
           </span>
-          <span v-else-if="column.field === 'alocated'">
-            {{ row.alocated ? "Alocated" : "Not Alocated" }}
-          </span>
-          <span v-else-if="column.field === 'actions'">
+          <span v-else-if="props.column.field === 'actions'">
             <button
-              @click="editProject(row)"
-              class="bg-green-700 hover:bg-green-500 text-white font-bold py-2 px-4 rounded"
+              @click="moreDetails(props.row)"
+              class="w-full sm:w-auto bg-slate-700 hover:bg-blue-700 flex-1 justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
-              Edit
+              More Details
             </button>
             <button
               class="w-full sm:w-auto bg-slate-700 hover:bg-red-700 flex-1 justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
@@ -54,40 +54,118 @@
             </button>
           </span>
         </template>
-        <template v-slot:group-row="{ row, groupIndex }">
-          <tr v-if="expandedRows.includes(groupIndex)">
-            <td colspan="100%">
-              <!-- Your expanded row content here -->
-              <div>Project Description {{ row.description }}</div>
-              <div>Area: {{ this.getAreaName(row.area_id) }}</div>
-              <div>
-                Expertises: {{ this.getExpertiseNames(row.expertises) }}
-              </div>
-            </td>
-          </tr>
-        </template>
       </vue-good-table>
     </div>
   </div>
-
   <transition name="fade">
     <div
       v-if="showModal"
       class="fixed inset-0 bg-gray-500 bg-opacity-75 flex justify-center items-center p-4"
     >
       <div class="bg-white p-4 sm:p-6 rounded-lg max-w-md w-full space-y-4">
-        <div class="text-lg font-semibold">Editing Project</div>
+        <div class="text-lg font-semibold">
+          {{ editingProject ? "Edit Project" : "Project Details" }}
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700"
+            >Project Name</label
+          >
+          <div
+            class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 justify-center block w-full sm:text-sm border-gray-300 rounded-md"
+          >
+            {{ inspectingProject.name }}
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700"
+            >Description</label
+          >
+          <div class="mt-1">
+            <div
+              class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 justify-center block w-full sm:text-sm border-gray-300 rounded-md"
+            >
+              {{ inspectingProject.description }}
+            </div>
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700"
+            >Student Name</label
+          >
+          <div class="mt-1">
+            <div
+              class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 justify-center block w-full sm:text-sm border-gray-300 rounded-md"
+            >
+              {{ this.getStudentName(inspectingProject.student_id) }}
+            </div>
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700"
+            >Tutor Name</label
+          >
+          <div class="mt-1">
+            <div
+              class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+            >
+              {{ this.getTutorName(inspectingProject.tutor_id) }}
+            </div>
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Area</label>
+          <div class="mt-1">
+            <div
+              class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 justify-center block w-full sm:text-sm border-gray-300 rounded-md"
+            >
+              {{ this.getAreaName(inspectingProject.area_id) }}
+            </div>
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700"
+            >Expertises</label
+          >
+          <div class="mt-1">
+            <div
+              class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 justify-center block w-full sm:text-sm border-gray-300 rounded-md"
+            >
+              {{ this.getExpertiseNames(inspectingProject.expertises) }}
+            </div>
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700"
+            >Alocated</label
+          >
+          <div class="mt-1">
+            <div
+              class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 justify-center block w-full sm:text-sm border-gray-300 rounded-md"
+            >
+              {{ inspectingProject.alocated ? "Alocated" : "Not Alocated" }}
+            </div>
+          </div>
+        </div>
 
         <div class="flex justify-center space-x-2">
           <button
+            v-if="!editingProject"
+            @click="editingProject = true"
+            class="w-full sm:w-auto bg-slate-700 hover:bg-blue-700 flex-1 justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          >
+            Edit
+          </button>
+          <button
+            v-if="editingProject"
             @click="saveProject()"
-            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            class="w-full sm:w-auto bg-slate-700 hover:bg-blue-700 flex-1 justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
             Save
           </button>
           <button
             @click="cancelEdit()"
-            class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+            class="w-full sm:w-auto bg-slate-700 hover:bg-red-700 flex-1 justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
             Cancel
           </button>
@@ -112,21 +190,15 @@ export default {
     return {
       isAnimated: false,
       showModal: false,
-      editingProject: null,
+      editingProject: false,
+      inspectingProject: null,
       tutors: [],
       students: [],
       areas: [],
       expertises: [],
       projects: [],
-      expandedRows: [],
       columns: [
-        {
-          label: "Expand",
-          field: "expand",
-          sortable: false,
-          width: "100px",
-        },
-        { label: "Project Name", field: "projectName" },
+        { label: "Project Name", field: "name" },
         { label: "Student Name", field: "studentName" },
         { label: "Tutor Name", field: "tutorName" },
         { label: "Alocated", field: "alocated" },
@@ -225,9 +297,9 @@ export default {
         });
     },
     fetchData() {
+      this.fetchProjects();
       this.fetchAreas();
       this.fetchExpertises();
-      this.fetchProjects();
       this.fetchTutors();
       this.fetchStudents();
     },
@@ -241,7 +313,6 @@ export default {
     },
     editProject(project) {
       this.editingProject = { ...project };
-      this.showModal = true;
     },
     async saveProject() {
       try {
@@ -270,7 +341,12 @@ export default {
     },
     cancelEdit() {
       this.showModal = false;
-      this.editingProject = null;
+      this.editingProject = false;
+      this.inspectingProject = null;
+    },
+    moreDetails(project) {
+      this.inspectingProject = { ...project };
+      this.showModal = true;
     },
   },
   mounted() {

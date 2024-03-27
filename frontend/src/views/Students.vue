@@ -52,7 +52,7 @@
             <button
               v-if="editingUserId !== props.row.id"
               @click="editUser(props.row)"
-              class="bg-slate-700 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+              class="w-full sm:w-auto bg-slate-700 hover:bg-green-700 flex-1 justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
               Edit
             </button>

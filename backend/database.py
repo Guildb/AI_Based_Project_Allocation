@@ -200,7 +200,7 @@ def create_table_project_expertise_if_not_exists():
                         CREATE TABLE "project_expertise" (
                             id SERIAL PRIMARY KEY,
                             project_id INTEGER REFERENCES "projects" (id),
-                            expertise_id 0.INTEGER REFERENCES "expertises" (id)
+                            expertise_id INTEGER REFERENCES "expertises" (id)
                         )
                     """)
                     conn.commit()
@@ -444,7 +444,7 @@ def store_projects_in_database(name, description, student_id, tutor_id, area_id)
                 try:
                     cur.execute("""
                         INSERT INTO "projects" (name, description, student_id, tutor_id, area_id, alocated)
-                        VALUES (%s, %s, %s, %s, %s, %s, %s)
+                        VALUES (%s, %s, %s, %s, %s, %s) RETURNING id
                     """, (name, description, student_id, tutor_id, area_id, alocated))
                     project_id = cur.fetchone()[0]
                     conn.commit()
@@ -732,11 +732,11 @@ def add_project(project):
                     
                 conn.commit()
                     
-                logging.info("Committing transaction for user: %s", project['name'])
+                logging.info("Committing transaction for project: %s", project['name'])
 
-            return True, "User updated successfully"
+            return True, "project added successfully"
     except ValueError as e:
-        logging.error("Failed to update user: %s, error: %s", project['name'], e)
+        logging.error("Failed to add expertise: %s, error: %s", project['name'], e)
 
         conn.rollback()  # Rollback transaction on specific subfunction error
         return False, str(e)  # Return error message from subfunction

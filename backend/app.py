@@ -31,6 +31,7 @@ with app.app_context():
     create_table_students_if_not_exists()
     create_table_tutor_expertise_if_not_exists()
     create_table_projects_if_not_exists()
+    create_table_project_expertise_if_not_exists()
 
 ## Code to get all tables apis
 @app.route('/users', methods=['GET'])

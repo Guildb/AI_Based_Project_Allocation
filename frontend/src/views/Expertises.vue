@@ -178,7 +178,6 @@ export default {
         .then((response) => response.json())
         .then((data) => (this.areas = data))
         .catch((error) => console.error("Error fetching areas:", error));
-      console.log(this.areas);
     },
     fetchExpertises() {
       fetch(`${process.env.VUE_APP_BACKEND_URL}/expertises`)
