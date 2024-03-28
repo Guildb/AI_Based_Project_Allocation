@@ -208,3 +208,97 @@ def configure_routes(app):
             app.logger.error(f"Unexpected error while adding project: {e}", exc_info=True)
             return jsonify({'error': "An unexpected error occurred"}), 500
 
+    @app.route('/deleteStudent', methods=['POST', 'OPTIONS'])
+    @token_required
+    def deleteStudent(current_user):
+        if request.method == 'OPTIONS':
+            return _build_cors_preflight_response()
+        
+        try:
+            data = request.get_json()
+            user = data.get('user')
+            success, message = delete_student(user)
+
+            if success:
+                return jsonify({'message': message}), 200
+            else:
+                return jsonify({'error': message}), 500
+        except Exception as e:
+            app.logger.error(f"Unexpected error while deleting student: {e}", exc_info=True)
+            return jsonify({'error': "An unexpected error occurred"}), 500
+
+    @app.route('/deleteTutor', methods=['POST', 'OPTIONS'])
+    @token_required
+    def deleteTutor(current_user):
+        if request.method == 'OPTIONS':
+            return _build_cors_preflight_response()
+        
+        try:
+            data = request.get_json()
+            user = data.get('user')
+            success, message = delete_tutor(user)
+
+            if success:
+                return jsonify({'message': message}), 200
+            else:
+                return jsonify({'error': message}), 500
+        except Exception as e:
+            app.logger.error(f"Unexpected error while deleting tutor: {e}", exc_info=True)
+            return jsonify({'error': "An unexpected error occurred"}), 500
+        
+    @app.route('/deleteArea', methods=['POST', 'OPTIONS'])
+    @token_required
+    def deleteArea(current_user):
+        if request.method == 'OPTIONS':
+            return _build_cors_preflight_response()
+        
+        try:
+            data = request.get_json()
+            area_id = data.get('area_id')
+            success, message = delete_area(area_id)
+
+            if success:
+                return jsonify({'message': message}), 200
+            else:
+                return jsonify({'error': message}), 500
+        except Exception as e:
+            app.logger.error(f"Unexpected error while deleting area: {e}", exc_info=True)
+            return jsonify({'error': "An unexpected error occurred"}), 500
+        
+    @app.route('/deleteExpertise', methods=['POST', 'OPTIONS'])
+    @token_required
+    def deleteExpertise(current_user):
+        if request.method == 'OPTIONS':
+            return _build_cors_preflight_response()
+        
+        try:
+            data = request.get_json()
+            expertise_id = data.get('expertise_id')
+            success, message = delete_expertise(expertise_id)
+
+            if success:
+                return jsonify({'message': message}), 200
+            else:
+                return jsonify({'error': message}), 500
+        except Exception as e:
+            app.logger.error(f"Unexpected error while deleting expertise: {e}", exc_info=True)
+            return jsonify({'error': "An unexpected error occurred"}), 500
+        
+    @app.route('/deleteProject', methods=['POST', 'OPTIONS'])
+    @token_required
+    def deleteProject(current_user):
+        if request.method == 'OPTIONS':
+            return _build_cors_preflight_response()
+        
+        try:
+            data = request.get_json()
+            project_id = data.get('project_id')
+            success, message = delete_project(project_id)
+
+            if success:
+                return jsonify({'message': message}), 200
+            else:
+                return jsonify({'error': message}), 500
+        except Exception as e:
+            app.logger.error(f"Unexpected error while deleting project: {e}", exc_info=True)
+            return jsonify({'error': "An unexpected error occurred"}), 500

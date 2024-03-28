@@ -27,6 +27,7 @@
           </span>
           <span v-else-if="props.column.field === 'actions'">
             <button
+              @click="deleteArea(props.row.id)"
               class="w-full sm:w-auto bg-slate-700 hover:bg-red-700 flex-1 justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
               Delete
@@ -157,6 +158,29 @@ export default {
         // Reset the input field when opening the modal
         this.newName = "";
       }
+    },
+    deleteArea(area_id) {
+      const token = localStorage.getItem("token");
+      fetch(`${process.env.VUE_APP_BACKEND_URL}/deleteArea`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ area_id: area_id }),
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Network response was not ok");
+          }
+          return response.json();
+        })
+        .then(() => {
+          this.fetchAreas();
+        })
+        .catch((error) => {
+          console.error("There was a problem deleting the area:", error);
+        });
     },
   },
   mounted() {

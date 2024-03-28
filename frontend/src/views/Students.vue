@@ -57,7 +57,7 @@
               Edit
             </button>
             <button
-              v-if="editingUserId !== props.row.id"
+              @click="deleteUser(props.row)"
               class="w-full sm:w-auto bg-slate-700 hover:bg-red-700 flex-1 justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
               Delete
@@ -194,6 +194,29 @@ export default {
       }
       this.editingUserId = null;
       this.editingUser = {};
+    },
+    deleteUser(user) {
+      const token = localStorage.getItem("token");
+      fetch(`${process.env.VUE_APP_BACKEND_URL}/deleteStudent`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ user: user }),
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Network response was not ok");
+          }
+          return response.json();
+        })
+        .then(() => {
+          this.fetchUsers();
+        })
+        .catch((error) => {
+          console.error("There was a problem deleting the user:", error);
+        });
     },
   },
   mounted() {

@@ -33,6 +33,7 @@
           </span>
           <span v-else-if="props.column.field === 'actions'">
             <button
+              @click="deleteExpertise(props.row.id)"
               class="w-full sm:w-auto bg-slate-700 hover:bg-red-700 flex-1 justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
               Delete
@@ -210,6 +211,29 @@ export default {
     findAreaName(areaId) {
       const area = this.areas.find((area) => area.id === areaId);
       return area ? area.name : "Unknown Area";
+    },
+    deleteExpertise(expertise_id) {
+      const token = localStorage.getItem("token");
+      fetch(`${process.env.VUE_APP_BACKEND_URL}/deleteExpertise`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ expertise_id: expertise_id }),
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Network response was not ok");
+          }
+          return response.json();
+        })
+        .then(() => {
+          this.fetchExpertises();
+        })
+        .catch((error) => {
+          console.error("There was a problem deleting the area:", error);
+        });
     },
   },
   mounted() {

@@ -465,6 +465,99 @@ def store_projects_in_database(name, description, student_id, tutor_id, area_id)
     finally:
             DBPool.get_instance().putconn(conn)
        
+#functions to delete data
+def delete_student(user):
+    try:
+        with DBPool.get_instance().getconn() as conn:
+            with conn.cursor() as cur:
+                try:
+                    conn.autocommit = False
+                    cur.execute("""
+                        UPDATE "projects"
+                        SET student_id = null
+                        WHERE student_id = %s;
+                    """, (user.student_id, ))
+                    cur.execute("DELETE FROM students WHERE user_id = %s", (user.id,))
+                    cur.execute("DELETE FROM users WHERE id = %s", (user.id,))
+                    conn.commit()
+                except psycopg2.Error as e:
+                    conn.rollback()  
+                    return False, f"Transaction failed: {e}"  
+                except Exception as e:
+                    conn.rollback() 
+                    return False, f"Unexpected error: {e}"
+        return True,f"Student deleted successfully"
+    except Exception as e:
+        return False, f"Unexpected error: {e}"
+
+def delete_tutor(user):
+    try:
+        with DBPool.get_instance().getconn() as conn:
+            with conn.cursor() as cur:
+                try:
+                    conn.autocommit = False
+                    cur.execute("DELETE FROM tutor_expertise WHERE tutor_id = %s", (user.tutor_id,))
+                    cur.execute("DELETE FROM tutors WHERE id = %s", (user.tutor_id,))
+                    cur.execute("DELETE FROM users WHERE id = %s", (user.id,))
+                    conn.commit()
+                except psycopg2.Error as e:
+                    conn.rollback()  
+                    return False, f"Transaction failed: {e}"  
+                except Exception as e:
+                    conn.rollback() 
+                    return False, f"Unexpected error: {e}"
+        return True, 'Tutor deleted successfully'
+    except Exception as e:
+        return False, f"Transaction failed: {e}" 
+
+def delete_area(area_id):
+    try:
+        with DBPool.get_instance().getconn() as conn:
+            with conn.cursor() as cur:
+                cur.execute("DELETE FROM areas WHERE id = %s", (area_id,))
+                conn.commit()
+        return True, 'Area deleted successfully'
+    except Exception as e:
+        return False, f"Unexpected error: {e}"
+
+def delete_expertise(expertise_id):
+    try:
+        with DBPool.get_instance().getconn() as conn:
+            with conn.cursor() as cur:
+                try:
+                    conn.autocommit = False
+                    cur.execute("DELETE FROM tutor_expertise WHERE expertise_id = %s", (expertise_id,))
+                    cur.execute("DELETE FROM project_expertise WHERE expertise_id = %s", (expertise_id,))
+                    cur.execute("DELETE FROM expertises WHERE id = %s", (expertise_id,))
+                    conn.commit()
+                except psycopg2.Error as e:
+                    conn.rollback()  
+                    return False, f"Transaction failed: {e}"
+                except Exception as e:
+                    conn.rollback() 
+                    return False, f"Unexpected error: {e}"
+        return True, 'Expertise and related associations deleted successfully'
+    except Exception as e:
+        return False, f"Unexpected error: {e}"
+
+def delete_project(project_id):
+    try:
+        with DBPool.get_instance().getconn() as conn:
+            with conn.cursor() as cur:
+                try:
+                    conn.autocommit = False
+                    cur.execute("DELETE FROM project_expertise WHERE project_id = %s", (project_id,))
+                    cur.execute("DELETE FROM projects WHERE id = %s", (project_id,))
+                    conn.commit()
+                except psycopg2.Error as e:
+                    conn.rollback()  
+                    return False, f"Transaction failed: {e}"  
+                except Exception as e:
+                    conn.rollback() 
+                    return False, f"Unexpected error: {e}"
+        return True, 'Tutor deleted successfully'
+    except Exception as e:
+        return False, f"Unexpected error: {e}"
 
 #session functions
 def create_token(user_id, time):

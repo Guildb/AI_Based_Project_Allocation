@@ -51,11 +51,8 @@
                   </div>
                 </div>
               </div>
-              <div
-                class="grid grid-cols-1 sm:grid-cols-2 gap-4"
-                v-if="user.project"
-              >
-                <div>
+              <div v-if="user.project">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <h3 class="text-lg font-semibold">Project Name</h3>
                     <p>{{ user.project.name }}</p>
@@ -64,10 +61,8 @@
                     <h3 class="text-lg font-semibold">Tutor Name</h3>
                     <p>{{ getTutorName(user.project.tutor_id) }}</p>
                   </div>
-                  <div>
-                    <h3 class="text-lg font-semibold">Description</h3>
-                    <p>{{ user.project.description }}</p>
-                  </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <h3 class="text-lg font-semibold">Area</h3>
                     <p>{{ getAreaName(user.project.area_id) }}</p>
@@ -76,6 +71,10 @@
                     <h3 class="text-lg font-semibold">Expertises</h3>
                     <p>{{ getExpertiseNames(user.project.expertises) }}</p>
                   </div>
+                </div>
+                <div class="grid grid-cols-1">
+                  <h3 class="text-lg font-semibold">Description</h3>
+                  <p>{{ user.project.description }}</p>
                 </div>
               </div>
             </div>
