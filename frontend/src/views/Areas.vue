@@ -15,6 +15,7 @@
       >
         <template v-slot:table-actions>
           <button
+            v-if="userType === 'courseLeader'"
             @click="toggleInput"
             class="w-full sm:w-auto bg-slate-700 hover:bg-green-700 flex-1 justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
@@ -27,6 +28,7 @@
           </span>
           <span v-else-if="props.column.field === 'actions'">
             <button
+              v-if="userType === 'courseLeader'"
               @click="deleteArea(props.row.id)"
               class="w-full sm:w-auto bg-slate-700 hover:bg-red-700 flex-1 justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
@@ -91,6 +93,7 @@ export default {
       areas: [],
       showInput: false,
       newName: "",
+      userType: null,
       columns: [
         { label: "Name", field: "name" },
         {
@@ -103,6 +106,9 @@ export default {
     };
   },
 
+  created() {
+    this.userType = localStorage.getItem("type");
+  },
   methods: {
     addArea() {
       const areaName = this.newName.trim();

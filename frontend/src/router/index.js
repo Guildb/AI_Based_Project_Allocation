@@ -61,28 +61,64 @@ const router = createRouter({
 });
 
 router.beforeEach((to, from, next) => {
-  const isLoggedIn = localStorage.getItem("token");
+  console.log("verifying token");
+  const token = localStorage.getItem("token");
 
-  // Check if the user is trying to access a page that requires authentication
   if (to.matched.some((record) => record.meta.requiresAuth)) {
-    if (!isLoggedIn) {
-      // If the user is not logged in, redirect to the login page
+    if (!token) {
+      // No token, redirect to login
       next({ path: "/" });
     } else {
-      // If the user is logged in, proceed as normal
-      next();
+      // Verify token before proceeding
+      verifyToken(token)
+        .then(() => {
+          next();
+        })
+        .catch(() => {
+          // Token verification failed, redirect to login
+          next({ path: "/" });
+        });
     }
-  } else if (to.path === "/") {
-    if (isLoggedIn) {
-      // If the user is logged in and trying to access the home page, redirect to the dashboard
-      next({ path: "/dashboard" });
-    } else {
-      // If the user is not logged in, allow them to see the home page
-      next();
-    }
+  } else if (to.path === "/" && token) {
+    // For home path, redirect to dashboard if token exists and is valid
+    verifyToken(token)
+      .then(() => {
+        next({ path: "/dashboard" });
+      })
+      .catch(() => {
+        next();
+      });
   } else {
+    // For all other cases, allow navigation
     next();
   }
 });
+
+function verifyToken(token) {
+  console.log("validating if token is expired");
+  return new Promise((resolve, reject) => {
+    fetch(`${process.env.VUE_APP_BACKEND_URL}/verify_token`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.message === "Token is valid") {
+          console.log("token validated");
+          resolve();
+        } else {
+          console.log("token expired");
+          localStorage.removeItem("token");
+          reject(new Error("Token validation failed!"));
+        }
+      })
+      .catch((error) => {
+        localStorage.removeItem("token");
+        console.error("There was a problem verifying the token:", error);
+        reject(error);
+      });
+  });
+}
 
 export default router;

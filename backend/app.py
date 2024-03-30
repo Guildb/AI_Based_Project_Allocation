@@ -310,13 +310,13 @@ def get_current_user():
         return jsonify({'error': "Unauthorized"}), 401
     user = validate_token(token)
     user_id = user.get('user_id')
+
     if not user_id:
         return jsonify({'error': "Unauthorized"}), 401
 
     try:
         with DBPool.get_instance().getconn() as conn:
             with conn.cursor() as cur:
-                # Fetch common user details first
                 cur.execute("""SELECT id, firstName, lastName, type 
                             FROM "users" 
                             WHERE id = %s""", (user_id,))
@@ -331,6 +331,7 @@ def get_current_user():
                     'lastName': user_row[2],   
                     'type': user_row[3]
                 }
+                
 
                 if user_row[3] == "student":
                     cur.execute("""SELECT id, COALESCE(student_number, 'NaN') AS student_number
@@ -338,46 +339,48 @@ def get_current_user():
                                 WHERE user_id = %s""", (user_id,))
                     student_row = cur.fetchone()
                     if not student_row:
-                        return jsonify({'error': 'Student not found'}), 404
-                    
-                    user.update({
-                        'student_number': student_row[1],
-                        'student_id' : student_row[0],
-                    })
-                    
-                    cur.execute("""SELECT *
-                                FROM "projects"
-                                WHERE student_id = %s""", (student_row[0],))
-                    project_row = cur.fetchone()
-                    if not project_row:
-                        project = None
+                        user.update({
+                            'student_number': None,
+                            'student_id' : None,
+                        })
                     else:
-                        cur.execute("""
-                        SELECT expertise_id
-                        FROM "project_expertise" pe
-                        LEFT JOIN "expertises" e ON pe.expertise_id = e.id
-                        WHERE pe.project_id = %s
-                        """, (project_row[0],))
-                        expertises_results = cur.fetchall()
-                        if expertises_results:
-                            expertises = [expertise[0] for expertise in expertises_results]
+                        user.update({
+                            'student_number': student_row[1],
+                            'student_id' : student_row[0],
+                        })
+                        cur.execute("""SELECT *
+                                    FROM "projects"
+                                    WHERE student_id = %s""", (student_row[0],))
+                        project_row = cur.fetchone()
+                        if not project_row:
+                            project = None
                         else:
-                            expertises = []
-                            
-                        project = {
-                            'id': project_row[0],
-                            'name': project_row[1],
-                            'description': project_row[2],
-                            'student_id': project_row[3],
-                            'tutor_id': project_row[4],
-                            'area_id': project_row[5],
-                            'alocated': project_row[6],
-                            'expertises': expertises
-                        }
-                    
-                    user.update({
-                        'project': project
-                    })
+                            cur.execute("""
+                            SELECT expertise_id
+                            FROM "project_expertise" pe
+                            LEFT JOIN "expertises" e ON pe.expertise_id = e.id
+                            WHERE pe.project_id = %s
+                            """, (project_row[0],))
+                            expertises_results = cur.fetchall()
+                            if expertises_results:
+                                expertises = [expertise[0] for expertise in expertises_results]
+                            else:
+                                expertises = []
+                                
+                            project = {
+                                'id': project_row[0],
+                                'name': project_row[1],
+                                'description': project_row[2],
+                                'student_id': project_row[3],
+                                'tutor_id': project_row[4],
+                                'area_id': project_row[5],
+                                'alocated': project_row[6],
+                                'expertises': expertises
+                            }
+                        
+                        user.update({
+                            'project': project
+                        })
                     
                 else:
                     cur.execute("""SELECT id, COALESCE(slots, '0') AS slots, area_id
@@ -385,12 +388,17 @@ def get_current_user():
                                 WHERE user_id = %s""", (user_id,))
                     tutor_row= cur.fetchone()
                     if not tutor_row:
-                        return jsonify({'error': 'Tutor not found'}), 404
-                    user.update({
-                        'tutor_id': tutor_row[0],
-                        'slots' : tutor_row[1],
-                        'area_id' : tutor_row[2] 
-                    })
+                        user.update({
+                            'tutor_id': None,
+                            'slots' : None,
+                            'area_id' : None 
+                        })
+                    else:
+                        user.update({
+                            'tutor_id': tutor_row[0],
+                            'slots' : tutor_row[1],
+                            'area_id' : tutor_row[2] 
+                        })
                     cur.execute("""
                         SELECT expertise_id
                         FROM "tutor_expertise" te
@@ -426,13 +434,13 @@ def get_current_user():
                             else:
                                 expertises = []
                             tutor_projects.append({
-                                'id': project_row[0],
-                                'name': project_row[1],
-                                'description': project_row[2],
-                                'student_id': project_row[3],
-                                'tutor_id': project_row[4],
-                                'area_id': project_row[5],
-                                'alocated': project_row[6],
+                                'id': row[0],
+                                'name': row[1],
+                                'description': row[2],
+                                'student_id': row[3],
+                                'tutor_id': row[4],
+                                'area_id': row[5],
+                                'alocated': row[6],
                                 'expertises': expertises
                             })
                     
@@ -448,6 +456,22 @@ def get_current_user():
         return jsonify({'error': 'Internal Server Error'}), 500
     finally:
         DBPool.get_instance().putconn(conn)
+
+@app.route('/verify_token', methods=['POST'])
+def verify_token():
+    data = request.get_json()
+    token = data.get('token')
+    app.logger.error(f"verifying token: {validate_token(token)}", exc_info=True)
+    try:
+        success = validate_token(token)
+        if success:
+            return jsonify({'message': "Token is valid"}), 200
+        else:
+            return jsonify({'message': 'Token has expired!'}), 401
+    except jwt.ExpiredSignatureError:
+        return jsonify({'message': 'Token has expired!'}), 401
+    except jwt.InvalidTokenError:
+        return jsonify({'message': 'Token is invalid!'}), 401
 
 
 

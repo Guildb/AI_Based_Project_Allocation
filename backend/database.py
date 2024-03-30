@@ -473,12 +473,12 @@ def delete_student(user):
                 try:
                     conn.autocommit = False
                     cur.execute("""
-                        UPDATE "projects"
-                        SET student_id = null
-                        WHERE student_id = %s;
-                    """, (user.student_id, ))
-                    cur.execute("DELETE FROM students WHERE user_id = %s", (user.id,))
-                    cur.execute("DELETE FROM users WHERE id = %s", (user.id,))
+                                UPDATE "projects"
+                                SET student_id = null, alocated = False
+                                WHERE student_id = %s;
+                                """, (user['student_id'], ))
+                    cur.execute("DELETE FROM students WHERE user_id = %s", (user['id'],))
+                    cur.execute("DELETE FROM users WHERE id = %s", (user['id'],))
                     conn.commit()
                 except psycopg2.Error as e:
                     conn.rollback()  
@@ -496,9 +496,14 @@ def delete_tutor(user):
             with conn.cursor() as cur:
                 try:
                     conn.autocommit = False
-                    cur.execute("DELETE FROM tutor_expertise WHERE tutor_id = %s", (user.tutor_id,))
-                    cur.execute("DELETE FROM tutors WHERE id = %s", (user.tutor_id,))
-                    cur.execute("DELETE FROM users WHERE id = %s", (user.id,))
+                    cur.execute("""
+                                UPDATE "projects" 
+                                SET tutor_id = null, alocated = False 
+                                WHERE tutor_id = %s; 
+                                """, (user['tutor_id'], ))
+                    cur.execute("DELETE FROM tutor_expertise WHERE tutor_id = %s", (user['tutor_id'],))
+                    cur.execute("DELETE FROM tutors WHERE id = %s", (user['tutor_id'],))
+                    cur.execute("DELETE FROM users WHERE id = %s", (user['id'],))
                     conn.commit()
                 except psycopg2.Error as e:
                     conn.rollback()  
@@ -514,6 +519,7 @@ def delete_area(area_id):
     try:
         with DBPool.get_instance().getconn() as conn:
             with conn.cursor() as cur:
+                cur.execute("""UPDATE "projects" SET area_id = null WHERE area_id = %s; """, (area_id, ))
                 cur.execute("DELETE FROM areas WHERE id = %s", (area_id,))
                 conn.commit()
         return True, 'Area deleted successfully'
@@ -560,10 +566,11 @@ def delete_project(project_id):
         return False, f"Unexpected error: {e}"
 
 #session functions
-def create_token(user_id, time):
+def create_token(user_id, time, user_type):
     payload = {
         "user_id": user_id,
-        "exp": datetime.utcnow() + timedelta(hours= time)  # Token expires in 1 day
+        "type": user_type,
+        "exp": datetime.utcnow() + timedelta(hours= time) 
     }
     token = jwt.encode(payload, SESSION_KEY, algorithm=ALGORITHM)
     return token
@@ -586,17 +593,18 @@ def token_required(f):
             return _build_cors_preflight_response()
         if 'Authorization' in request.headers:
             token = request.headers['Authorization'].split(" ")[1]
-            
-
         if not token:
             return jsonify({'message': 'Token is missing!'}), 401
-
         try:
             data = validate_token(token)
-            current_user = data['user_id']
-        except:
-            return jsonify({'message': 'Token is invalid!'}), 401
-
+            if data is None:
+                raise ValueError('Token is invalid or expired!')
+        except jwt.ExpiredSignatureError:
+            return jsonify({'message': 'Token has expired!'}), 401
+        except (jwt.InvalidTokenError, ValueError) as e:
+            return jsonify({'message': str(e)}), 401
+        
+        current_user = data['user_id']
         return f(current_user, *args, **kwargs)
 
     return decorated
@@ -751,14 +759,14 @@ def get_user_credentials(email):
         with conn.cursor() as cur:
             try:
                 # Fetch user id and password where the email matches
-                cur.execute('SELECT id, password FROM "users" WHERE email = %s', (email,))
+                cur.execute('SELECT id, password, type FROM "users" WHERE email = %s', (email,))
                 result = cur.fetchone()
                 if result:
-                    user_id, stored_password = result
+                    user_id, stored_password, user_type = result
                     print("Password verified for user ID: ", user_id, file=sys.stderr)
                     # Ensure the stored password hash is encoded to bytes
                     encoded_password = stored_password.encode('utf-8') if isinstance(stored_password, str) else stored_password
-                    return (user_id, encoded_password)
+                    return (user_id, encoded_password, user_type)
                 else:
                     return False, "User not found."
             except Exception as e:

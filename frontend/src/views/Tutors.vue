@@ -261,7 +261,7 @@ export default {
       this.showModal = false;
       this.editingUser = null;
     },
-      deleteUser(user) {
+    deleteUser(user) {
       const token = localStorage.getItem("token");
       fetch(`${process.env.VUE_APP_BACKEND_URL}/deleteTutor`, {
         method: "POST",

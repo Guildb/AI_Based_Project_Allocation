@@ -39,7 +39,6 @@ def configure_routes(app):
             hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
             hashed_password = hashed_password.decode('utf8')
             store_user_result = store_user_in_database(firstName, lastName, email, hashed_password, 'student')
-            
             if store_user_result:
                 error_message, status_code = store_user_result
                 return jsonify({'error': error_message}), status_code
@@ -48,11 +47,6 @@ def configure_routes(app):
         except Exception as e:
             logger.exception(f"Exception in signup: {e}")
             return jsonify({'error': 'Failed to signup'}), 500
-
-    @app.route('/logout', methods=['POST', 'OPTIONS'])
-    @token_required
-    def logout(current_user):
-        return jsonify({'message': 'Logged out successfully'}), 200
 
     @app.route('/login', methods=['POST', 'OPTIONS'])
     def login():
@@ -83,13 +77,13 @@ def configure_routes(app):
             if not credentials:
                 return jsonify({'error': 'Invalid email or password'}), 401
             
-            user_id, password_hash = credentials
+            user_id, password_hash, user_type = credentials
             logging.info(f"Found user ID {user_id} for email: {email}")
             password = password.encode('utf-8')
             
             if bcrypt.checkpw(password, password_hash):
                 logging.info(f"Password verified for user ID: {user_id}")
-                token = create_token(user_id, time )
+                token = create_token(user_id, time, user_type)
                 return jsonify({'token': token}), 200
                 
 
@@ -118,6 +112,30 @@ def configure_routes(app):
         except Exception as e:
             app.logger.error(f"Unexpected error while changing user type: {e}", exc_info=True)
             return jsonify({'error': "An unexpected error occurred"}), 500
+
+    @app.route('/addStudentNumber', methods=['POST', 'OPTIONS'])
+    @token_required
+    def addStudentNumber(current_user):
+        if request.method == 'OPTIONS':
+            return _build_cors_preflight_response()
+        
+        try:
+            data = request.get_json()
+            sudent_number = data.get('sudent_number')
+            user_id = data.get('user_id')
+
+            if not all([sudent_number, user_id]):
+                return jsonify({'error': 'All fields must be filled'}), 400
+
+            error_message, status_code = store_students_in_database(sudent_number, user_id)
+            
+            if error_message:
+                return jsonify({'error': error_message}), status_code
+
+            return jsonify({'message': 'Student number added successfully'}), 201
+        except Exception as e:
+            logger.exception(f"Exception in addStudentnUmber: {e}")
+            return jsonify({'error': 'Failed to add stuent number'}), 500
 
     @app.route('/addArea', methods=['POST', 'OPTIONS'])
     @token_required
@@ -217,11 +235,13 @@ def configure_routes(app):
         try:
             data = request.get_json()
             user = data.get('user')
+            app.logger.error(f"Unexpected error while deleting student: {user}", exc_info=True)
             success, message = delete_student(user)
 
             if success:
                 return jsonify({'message': message}), 200
             else:
+                app.logger.error(f"Unexpected error while deleting student: {message}", exc_info=True)
                 return jsonify({'error': message}), 500
         except Exception as e:
             app.logger.error(f"Unexpected error while deleting student: {e}", exc_info=True)

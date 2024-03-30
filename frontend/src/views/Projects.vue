@@ -48,6 +48,7 @@
               More Details
             </button>
             <button
+              @click="deleteProject(props.row.id)"
               class="w-full sm:w-auto bg-slate-700 hover:bg-red-700 flex-1 justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
               Delete
@@ -156,6 +157,16 @@
           >
             Edit
           </button>
+          <div>
+            <button
+              v-if="editingProject"
+              @click="findTutor()"
+              class="w-full sm:w-auto bg-slate-700 hover:bg-green-700 flex-1 justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              Find Tutor
+            </button>
+          </div>
+
           <button
             v-if="editingProject"
             @click="saveProject()"
@@ -302,6 +313,29 @@ export default {
       this.fetchExpertises();
       this.fetchTutors();
       this.fetchStudents();
+    },
+    deleteProject(project_id) {
+      const token = localStorage.getItem("token");
+      fetch(`${process.env.VUE_APP_BACKEND_URL}/deleteProject`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ project_id: project_id }),
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Network response was not ok");
+          }
+          return response.json();
+        })
+        .then(() => {
+          this.fetchProjects();
+        })
+        .catch((error) => {
+          console.error("There was a problem deleting the project:", error);
+        });
     },
     toggleExpand(rowIndex) {
       const index = this.expandedRows.indexOf(rowIndex);

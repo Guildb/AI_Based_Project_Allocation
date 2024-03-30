@@ -142,7 +142,6 @@ export default {
           console.log("Login successful:", data);
           // TODO: Handle login success, e.g., storing the session token, if any
           localStorage.setItem("token", data.token);
-          print(localStorage.getItem("token", data.token));
           this.$router.push("/dashboard");
         })
         .catch((error) => {

@@ -9,8 +9,16 @@
         Welcome {{ user.firstName }} {{ user.lastName }}
       </h1>
       <button
+        v-if="user.type === 'student' && user.student_id"
+        @click="addStudentNumber()"
+        class="bg-slate-700 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+      >
+        Add Student Number
+      </button>
+      <button
         v-if="
-          user.type !== 'student' || (user.type === 'student' && !user.project)
+          user.type !== 'student' ||
+          (user.type === 'student' && !user.project && user.student_id)
         "
         @click="addProject()"
         class="bg-slate-700 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
@@ -18,40 +26,52 @@
         Add Project
       </button>
 
-      <div class="p-4">
-        <div class="max-w-4xl mx-auto">
-          <div class="bg-white shadow-md rounded-lg overflow-hidden">
-            <div class="p-4 md:p-6 lg:p-8">
+      <div v-if="user.type !== 'student' && user.projects">
+        <div class="p-4">
+          <div class="max-w-4xl mx-auto">
+            <div class="bg-white shadow-md rounded-lg overflow-hidden">
               <h2 class="text-2xl font-semibold mb-4">Projects Details</h2>
-              <div v-if="user.type !== 'student'"></div>
-              <div
-                class="grid grid-cols-1 sm:grid-cols-2 gap-4"
-                v-if="user.projects"
-              >
-                <div v-for="project in user.projects" :key="project">
-                  <div>
-                    <h3 class="text-lg font-semibold">Project Name</h3>
-                    <p>{{ user.project.name }}</p>
-                  </div>
-                  <div>
-                    <h3 class="text-lg font-semibold">Student Name</h3>
-                    <p>{{ getStudentName(user.project.student_id) }}</p>
-                  </div>
-                  <div>
-                    <h3 class="text-lg font-semibold">Description</h3>
-                    <p>{{ user.project.description }}</p>
-                  </div>
-                  <div>
-                    <h3 class="text-lg font-semibold">Area</h3>
-                    <p>{{ getAreaName(user.project.area_id) }}</p>
-                  </div>
-                  <div>
-                    <h3 class="text-lg font-semibold">Expertises</h3>
-                    <p>{{ getExpertiseNames(user.project.expertises) }}</p>
+              <div class="p-4 md:p-6 lg:p-8">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div v-for="project in user.projects" :key="project">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <h3 class="text-lg font-semibold">Project Name</h3>
+                        <p>{{ project.name }}</p>
+                      </div>
+                      <div>
+                        <h3 class="text-lg font-semibold">Student Name</h3>
+                        <p>{{ getStudentName(project.student) }}</p>
+                      </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <h3 class="text-lg font-semibold">Area</h3>
+                        <p>{{ getAreaName(project.area_id) }}</p>
+                      </div>
+                      <div>
+                        <h3 class="text-lg font-semibold">Expertises</h3>
+                        <p>{{ getExpertiseNames(project.expertises) }}</p>
+                      </div>
+                    </div>
+                    <div class="grid grid-cols-1">
+                      <h3 class="text-lg font-semibold">Description</h3>
+                      <p>{{ project.description }}</p>
+                    </div>
                   </div>
                 </div>
               </div>
-              <div v-if="user.project">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div v-if="user.type === 'student' && user.project">
+        <div class="p-4">
+          <div class="max-w-4xl mx-auto">
+            <div class="bg-white shadow-md rounded-lg overflow-hidden">
+              <h2 class="text-2xl font-semibold mb-4">Project Details</h2>
+              <div class="p-4 md:p-6 lg:p-8">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <h3 class="text-lg font-semibold">Project Name</h3>
@@ -83,6 +103,37 @@
       </div>
     </div>
   </div>
+  <transition name="fade">
+    <div
+      v-if="addSNumber"
+      class="fixed inset-0 bg-gray-500 bg-opacity-75 flex justify-center items-center p-4"
+    >
+      <div class="bg-white p-4 sm:p-6 rounded-lg max-w-md w-full space-y-4">
+        <div class="text-lg font-semibold">Add a new Project</div>
+        <div>
+          <input
+            v-model="newSNumber"
+            placeholder="StudentNumber"
+            class="bg-gray-200 text-gray-700 py-1 px-2 rounded w-full"
+          />
+        </div>
+        <div class="flex justify-center space-x-2">
+          <button
+            @click="saveSNumber()"
+            class="w-full sm:w-auto bg-slate-700 hover:bg-green-700 flex-1 justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          >
+            Save
+          </button>
+          <button
+            @click="cancelSNumber()"
+            class="w-full sm:w-auto bg-slate-700 hover:bg-red-700 inline-flex items-center justify-center flex-1 py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </transition>
 
   <transition name="fade">
     <div
@@ -173,16 +224,17 @@
 </template>
 
 <script>
-import navbar from "@/components/NavBar.vue";
 export default {
   name: "DashBoard",
   components: {
     navbar,
-  },
+  }
   data() {
     return {
       isAnimated: false,
       showModal: false,
+      addSNumber: false,
+      newSNumber: "",
       user: {},
       areas: [],
       expertises: [],
@@ -351,6 +403,50 @@ export default {
         (student) => student.student_id === studentId
       );
       return sName ? `${sName.firstName} ${sName.lastName}` : "Not Found";
+    },
+    addStudentNumber() {
+      this.addSNumber = true;
+      this.newSNumber = "";
+    },
+    saveSNumber() {
+      const newSNumber = this.newSNumber.trim();
+      const token = localStorage.getItem("token");
+      if (!newSNumber) {
+        alert("Student Number is required");
+        return;
+      }
+      fetch(`${process.env.VUE_APP_BACKEND_URL}/addStudentNumber`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          sudent_number: newSNumber,
+          user_id: this.user.id,
+        }),
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Network response was not ok");
+          }
+          return response.json();
+        })
+        .then(() => {
+          this.addSNumber = false;
+          this.newSNumber = "";
+          this.getInicialData();
+        })
+        .catch((error) => {
+          console.error(
+            "There was a problem adding the student number:",
+            error
+          );
+        });
+    },
+    cancelSNumber() {
+      this.addSNumber = true;
+      this.newSNumber = "";
     },
   },
   computed: {

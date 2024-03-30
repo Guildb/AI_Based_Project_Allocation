@@ -42,6 +42,7 @@
         </li>
         <li>
           <router-link
+            v-if="userType !== 'student'"
             to="/students"
             class="text-slate-700 hover:text-blue-500 font-semibold"
             >Students</router-link
@@ -49,6 +50,7 @@
         </li>
         <li>
           <router-link
+            v-if="userType !== 'student'"
             to="/tutors"
             class="text-slate-700 hover:text-blue-500 font-semibold"
             >Tutors</router-link
@@ -56,6 +58,7 @@
         </li>
         <li>
           <router-link
+            v-if="userType !== 'student'"
             to="/areas"
             class="text-slate-700 hover:text-blue-500 font-semibold"
             >Areas</router-link
@@ -63,6 +66,7 @@
         </li>
         <li>
           <router-link
+            v-if="userType !== 'student'"
             to="/expertises"
             class="text-slate-700 hover:text-blue-500 font-semibold"
             >Expertises</router-link
@@ -70,6 +74,7 @@
         </li>
         <li>
           <router-link
+            v-if="userType !== 'student'"
             to="/projects"
             class="text-slate-700 hover:text-blue-500 font-semibold"
             >Projects</router-link
@@ -101,7 +106,11 @@ export default {
   data() {
     return {
       showSidebar: false,
+      userType: null,
     };
+  },
+  created() {
+    this.userType = localStorage.getItem("type");
   },
   methods: {
     toggleSidebar() {
