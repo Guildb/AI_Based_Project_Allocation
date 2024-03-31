@@ -15,6 +15,7 @@
       >
         <template v-slot:table-actions>
           <button
+            v-if="user.type === 'courseLeader' || user.type === 'admin'"
             @click="toggleInput"
             class="w-full sm:w-auto bg-slate-700 hover:bg-green-700 flex-1 justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
@@ -33,6 +34,7 @@
           </span>
           <span v-else-if="props.column.field === 'actions'">
             <button
+              v-if="user.type === 'courseLeader' || user.type === 'admin'"
               @click="deleteExpertise(props.row.id)"
               class="w-full sm:w-auto bg-slate-700 hover:bg-red-700 flex-1 justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
@@ -79,12 +81,7 @@
             Save
           </button>
           <button
-            @click="
-              showInput = false;
-              newName = '';
-              newAcronym = '';
-              newArea = null;
-            "
+            @click="cancelEdit()"
             class="w-full sm:w-auto bg-slate-700 hover:bg-red-700 inline-flex items-center justify-center flex-1 py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
             Cancel
@@ -115,6 +112,7 @@ export default {
       newName: "",
       newAcronym: "",
       newArea: null,
+      user: {},
       columns: [
         { label: "Name", field: "name" },
         { label: "Acronym", field: "acronym" },
@@ -130,6 +128,34 @@ export default {
   },
 
   methods: {
+    getUser() {
+      const token = localStorage.getItem("token");
+
+      fetch(`${process.env.VUE_APP_BACKEND_URL}/get_current_user`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ token: token }),
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Network response was not ok");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          if (data.type === "student") {
+            alert("Access denied!");
+            this.$router.push("/dashboard");
+          }
+          this.user = data;
+        })
+        .catch((error) => {
+          console.error("There was a problem fetching the user:", error);
+        });
+    },
     addExpertise() {
       const expertiseName = this.newName.trim();
       const expertiseAcronym = this.newAcronym.trim();
@@ -164,10 +190,7 @@ export default {
           return response.json();
         })
         .then(() => {
-          this.showInput = false;
-          this.newName = "";
-          this.newAcronym = "";
-          this.newArea = null;
+          this.cancelEdit();
           this.fetchExpertises();
         })
         .catch((error) => {
@@ -208,6 +231,12 @@ export default {
         this.newArea = null;
       }
     },
+    cancelEdit() {
+      this.showInput = false;
+      this.newName = "";
+      this.newAcronym = "";
+      this.newArea = null;
+    },
     findAreaName(areaId) {
       const area = this.areas.find((area) => area.id === areaId);
       return area ? area.name : "Unknown Area";
@@ -242,6 +271,7 @@ export default {
     }, 100);
     this.fetchAreas();
     this.fetchExpertises();
+    this.getUser();
   },
 };
 </script>

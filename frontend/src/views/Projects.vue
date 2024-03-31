@@ -1,6 +1,6 @@
 <template>
   <navbar />
-  <div class="min-h-screen flex justify-center items-center p-4">
+  <div class="min-h-screen flex justify-center items-center p-4 p-24">
     <div
       class="w-full max-w-4xl bg-gray-200 bg-opacity-50 rounded-lg shadow-lg transition-opacity duration-700 ease-in p-1"
       :class="{ 'opacity-100': isAnimated }"
@@ -13,14 +13,6 @@
         styleClass="vgt-table striped condensed"
         theme="nocturnal"
       >
-        <template v-slot:table-actions>
-          <button
-            @click="toggleInput"
-            class="w-full sm:w-auto bg-slate-700 hover:bg-green-700 flex-1 justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-          >
-            Add Project
-          </button>
-        </template>
         <template v-slot:table-row="props">
           <span v-if="props.column.field === 'name'">
             {{ props.row.name }}
@@ -42,12 +34,14 @@
           </span>
           <span v-else-if="props.column.field === 'actions'">
             <button
+              v-if="user.type === 'courseLeader' || user.type === 'admin'"
               @click="moreDetails(props.row)"
               class="w-full sm:w-auto bg-slate-700 hover:bg-blue-700 flex-1 justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
               More Details
             </button>
             <button
+              v-if="user.type === 'courseLeader' || user.type === 'admin'"
               @click="deleteProject(props.row.id)"
               class="w-full sm:w-auto bg-slate-700 hover:bg-red-700 flex-1 justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
@@ -149,7 +143,9 @@
           </div>
         </div>
 
-        <div class="flex justify-center space-x-2">
+        <div
+          class="flex flex-col sm:flex-row justify-center sm:space-x-2 space-y-2 sm:space-y-0"
+        >
           <button
             v-if="!editingProject"
             @click="editingProject = true"
@@ -157,16 +153,13 @@
           >
             Edit
           </button>
-          <div>
-            <button
-              v-if="editingProject"
-              @click="findTutor()"
-              class="w-full sm:w-auto bg-slate-700 hover:bg-green-700 flex-1 justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            >
-              Find Tutor
-            </button>
-          </div>
-
+          <button
+            v-if="editingProject"
+            @click="findTutor()"
+            class="w-full sm:w-auto bg-slate-700 hover:bg-green-700 flex-1 justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          >
+            Find Tutor
+          </button>
           <button
             v-if="editingProject"
             @click="saveProject()"
@@ -200,12 +193,13 @@ export default {
   data() {
     return {
       isAnimated: false,
-      showModal: false,
       editingProject: false,
+      showModal: false,
       inspectingProject: null,
       tutors: [],
       students: [],
       areas: [],
+      user: {},
       expertises: [],
       projects: [],
       columns: [
@@ -224,6 +218,34 @@ export default {
   },
 
   methods: {
+    getUser() {
+      const token = localStorage.getItem("token");
+
+      fetch(`${process.env.VUE_APP_BACKEND_URL}/get_current_user`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ token: token }),
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Network response was not ok");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          if (data.type === "student") {
+            alert("Access denied!");
+            this.$router.push("/dashboard");
+          }
+          this.user = data;
+        })
+        .catch((error) => {
+          console.error("There was a problem fetching the user:", error);
+        });
+    },
     fetchTutors() {
       fetch(`${process.env.VUE_APP_BACKEND_URL}/tutors`)
         .then((response) => {
@@ -337,14 +359,6 @@ export default {
           console.error("There was a problem deleting the project:", error);
         });
     },
-    toggleExpand(rowIndex) {
-      const index = this.expandedRows.indexOf(rowIndex);
-      if (index > -1) {
-        this.expandedRows.splice(index, 1); // Collapse row
-      } else {
-        this.expandedRows.push(rowIndex); // Expand row
-      }
-    },
     editProject(project) {
       this.editingProject = { ...project };
     },
@@ -388,6 +402,7 @@ export default {
       this.isAnimated = true;
     }, 100);
     this.fetchData();
+    this.getUser();
   },
 };
 </script>

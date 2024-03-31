@@ -7,6 +7,7 @@ from routes import configure_routes
 import bcrypt
 import logging
 
+
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 load_dotenv()
@@ -32,6 +33,8 @@ with app.app_context():
     create_table_tutor_expertise_if_not_exists()
     create_table_projects_if_not_exists()
     create_table_project_expertise_if_not_exists()
+    createAdmin()
+
 
 ## Code to get all tables apis
 @app.route('/users', methods=['GET'])
@@ -382,6 +385,8 @@ def get_current_user():
                             'project': project
                         })
                     
+                elif user_row[3] == "admin":
+                    return jsonify(user), 200
                 else:
                     cur.execute("""SELECT id, COALESCE(slots, '0') AS slots, area_id
                                 FROM "tutors" 
@@ -481,3 +486,5 @@ if __name__ == '__main__':
     DBPool.get_instance()
     print('Starting the application')
     app.run(host='0.0.0.0', port=5000, debug=True)
+
+    

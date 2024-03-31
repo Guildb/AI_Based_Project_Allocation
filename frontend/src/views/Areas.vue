@@ -15,7 +15,7 @@
       >
         <template v-slot:table-actions>
           <button
-            v-if="userType === 'courseLeader'"
+            v-if="user.type === 'courseLeader'"
             @click="toggleInput"
             class="w-full sm:w-auto bg-slate-700 hover:bg-green-700 flex-1 justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
@@ -28,7 +28,7 @@
           </span>
           <span v-else-if="props.column.field === 'actions'">
             <button
-              v-if="userType === 'courseLeader'"
+              v-if="user.type === 'courseLeader' || user.type === 'admin'"
               @click="deleteArea(props.row.id)"
               class="w-full sm:w-auto bg-slate-700 hover:bg-red-700 flex-1 justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
@@ -60,12 +60,7 @@
             Save
           </button>
           <button
-            @click="
-              showInput = false;
-              newName = '';
-              newAcronym = '';
-              newArea = null;
-            "
+            @click="cancelEdit()"
             class="w-full sm:w-auto bg-slate-700 hover:bg-red-700 inline-flex items-center justify-center flex-1 py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
             Cancel
@@ -93,7 +88,7 @@ export default {
       areas: [],
       showInput: false,
       newName: "",
-      userType: null,
+      user: {},
       columns: [
         { label: "Name", field: "name" },
         {
@@ -105,11 +100,35 @@ export default {
       ],
     };
   },
-
-  created() {
-    this.userType = localStorage.getItem("type");
-  },
   methods: {
+    getUser() {
+      const token = localStorage.getItem("token");
+
+      fetch(`${process.env.VUE_APP_BACKEND_URL}/get_current_user`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ token: token }),
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Network response was not ok");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          if (data.type === "student") {
+            alert("Access denied!");
+            this.$router.push("/dashboard");
+          }
+          this.user = data;
+        })
+        .catch((error) => {
+          console.error("There was a problem fetching the user:", error);
+        });
+    },
     addArea() {
       const areaName = this.newName.trim();
       const token = localStorage.getItem("token");
@@ -133,8 +152,7 @@ export default {
           return response.json();
         })
         .then(() => {
-          this.showAddArea = false;
-          this.newAreaName = "";
+          this.cancelEdit();
           this.fetchAreas();
         })
         .catch((error) => {
@@ -165,6 +183,10 @@ export default {
         this.newName = "";
       }
     },
+    cancelEdit() {
+      this.showInput = false;
+      this.newName = "";
+    },
     deleteArea(area_id) {
       const token = localStorage.getItem("token");
       fetch(`${process.env.VUE_APP_BACKEND_URL}/deleteArea`, {
@@ -194,6 +216,7 @@ export default {
       this.isAnimated = true;
     }, 100);
     this.fetchAreas();
+    this.getUser();
   },
 };
 </script>

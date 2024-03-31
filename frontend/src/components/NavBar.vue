@@ -42,7 +42,7 @@
         </li>
         <li>
           <router-link
-            v-if="userType !== 'student'"
+            v-if="this.user.type !== 'student'"
             to="/students"
             class="text-slate-700 hover:text-blue-500 font-semibold"
             >Students</router-link
@@ -50,7 +50,7 @@
         </li>
         <li>
           <router-link
-            v-if="userType !== 'student'"
+            v-if="this.user.type !== 'student'"
             to="/tutors"
             class="text-slate-700 hover:text-blue-500 font-semibold"
             >Tutors</router-link
@@ -58,7 +58,7 @@
         </li>
         <li>
           <router-link
-            v-if="userType !== 'student'"
+            v-if="this.user.type !== 'student'"
             to="/areas"
             class="text-slate-700 hover:text-blue-500 font-semibold"
             >Areas</router-link
@@ -66,7 +66,7 @@
         </li>
         <li>
           <router-link
-            v-if="userType !== 'student'"
+            v-if="this.user.type !== 'student'"
             to="/expertises"
             class="text-slate-700 hover:text-blue-500 font-semibold"
             >Expertises</router-link
@@ -74,7 +74,7 @@
         </li>
         <li>
           <router-link
-            v-if="userType !== 'student'"
+            v-if="this.user.type !== 'student'"
             to="/projects"
             class="text-slate-700 hover:text-blue-500 font-semibold"
             >Projects</router-link
@@ -106,13 +106,34 @@ export default {
   data() {
     return {
       showSidebar: false,
-      userType: null,
+      user: {},
     };
   },
-  created() {
-    this.userType = localStorage.getItem("type");
-  },
   methods: {
+    getUser() {
+      const token = localStorage.getItem("token");
+
+      fetch(`${process.env.VUE_APP_BACKEND_URL}/get_current_user`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ token: token }),
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Network response was not ok");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          this.user = data;
+        })
+        .catch((error) => {
+          console.error("There was a problem fetching the user:", error);
+        });
+    },
     toggleSidebar() {
       this.showSidebar = !this.showSidebar;
     },
@@ -120,6 +141,9 @@ export default {
       localStorage.removeItem("token");
       this.$router.push("/");
     },
+  },
+  mounted() {
+    this.getUser();
   },
 };
 </script>

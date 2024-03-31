@@ -6,9 +6,11 @@ import datetime
 import logging
 import os
 import sys
+import bcrypt
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from flask import request, jsonify, make_response
+import json
 
 
 
@@ -363,7 +365,7 @@ def store_students_in_database(student_number, user_id):
                     """, (student_number, user_id))
                     conn.commit()
                     print("student stored successfully")
-                    return "student stored successfully."
+                    return "student stored successfully.", 200
                 except psycopg2.Error as e:
                     logger.error(f"Failed to insert student: {e}", exc_info=True)  # Log the error with stack trace
                     # Rollback the transaction on error
@@ -849,3 +851,47 @@ def add_project(project):
     finally:
         DBPool.get_instance().putconn(conn)
 
+
+def createAdmin():
+    try:
+        with DBPool.get_instance().getconn() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT * FROM \"users\"")
+                user = cur.fetchone()
+                if not user:
+                    password = "admin"
+                    hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+                    hashed_password = hashed_password.decode('utf8')
+                    store_user_in_database("Admin","Admin","admin@admin.com",hashed_password,"admin")
+    except Exception as e:
+        logger.exception("Error fetching users: %s", e)
+    finally:
+        if conn:
+            DBPool.get_instance().putconn(conn)
+
+def insert_data(db_pool, table_name, data):
+    columns = ', '.join(data[0].keys())
+    placeholders = ', '.join(['%s'] * len(data[0]))
+    sql = f"INSERT INTO \"{table_name}\" ({columns}) VALUES ({placeholders})"
+    
+    with db_pool.get_instance().getconn() as conn:
+        with conn.cursor() as cur:
+            for item in data:
+                values = tuple(item.values())
+                cur.execute(sql, values)
+            conn.commit()
+
+def load_mock_data():
+    # Load mock data from JSON file
+    with open('mock_data.json', 'r') as file:
+        mock_data = json.load(file)
+    
+    # Insert data into each table
+    insert_data(DBPool, 'users', mock_data['users'])
+    insert_data(DBPool, 'areas', mock_data['areas'])
+    insert_data(DBPool, 'expertises', mock_data['expertises'])
+    insert_data(DBPool, 'tutors', mock_data['tutors'])
+    insert_data(DBPool, 'students', mock_data['students'])
+    insert_data(DBPool, 'projects', mock_data['projects'])
+
+    print("Mock data inserted successfully.")

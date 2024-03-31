@@ -61,7 +61,6 @@ const router = createRouter({
 });
 
 router.beforeEach((to, from, next) => {
-  console.log("verifying token");
   const token = localStorage.getItem("token");
 
   if (to.matched.some((record) => record.meta.requiresAuth)) {
@@ -95,7 +94,6 @@ router.beforeEach((to, from, next) => {
 });
 
 function verifyToken(token) {
-  console.log("validating if token is expired");
   return new Promise((resolve, reject) => {
     fetch(`${process.env.VUE_APP_BACKEND_URL}/verify_token`, {
       method: "POST",
@@ -105,10 +103,8 @@ function verifyToken(token) {
       .then((response) => response.json())
       .then((data) => {
         if (data.message === "Token is valid") {
-          console.log("token validated");
           resolve();
         } else {
-          console.log("token expired");
           localStorage.removeItem("token");
           reject(new Error("Token validation failed!"));
         }

@@ -44,12 +44,14 @@
           </span>
           <span v-else-if="props.column.field === 'actions'">
             <button
+              v-if="user.type === 'courseLeader' || user.type === 'admin'"
               @click="editUser(props.row)"
               class="w-full sm:w-auto bg-slate-700 hover:bg-green-700 flex-1 justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
               Edit
             </button>
             <button
+              v-if="user.type === 'courseLeader' || user.type === 'admin'"
               @click="deleteUser(props.row)"
               class="w-full sm:w-auto bg-slate-700 hover:bg-red-700 flex-1 justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
@@ -160,6 +162,7 @@ export default {
   },
   data() {
     return {
+      user: {},
       isAnimated: false,
       showModal: false,
       editingUser: null,
@@ -189,6 +192,34 @@ export default {
   },
 
   methods: {
+    getUser() {
+      const token = localStorage.getItem("token");
+
+      fetch(`${process.env.VUE_APP_BACKEND_URL}/get_current_user`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ token: token }),
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Network response was not ok");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          if (data.type === "student") {
+            alert("Access denied!");
+            this.$router.push("/dashboard");
+          }
+          this.user = data;
+        })
+        .catch((error) => {
+          console.error("There was a problem fetching the user:", error);
+        });
+    },
     fetchUsers() {
       fetch(`${process.env.VUE_APP_BACKEND_URL}/tutors`) // Adjust the URL as needed
         .then((response) => {
@@ -304,6 +335,7 @@ export default {
     this.fetchAreas();
     this.fetchExpertises();
     this.fetchUsers();
+    this.getUser();
   },
 };
 </script>
