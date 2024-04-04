@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen flex justify-center items-center">
+  <div class="min-h-screen flex justify-center items-center p-24">
     <div
       class="w-3/4 bg-gray-200 bg-opacity-50 rounded-lg shadow-lg p-4 transition-opacity duration-700 ease-in opacity-0"
       :class="{ 'opacity-100': isAnimated }"

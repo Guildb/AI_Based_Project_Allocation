@@ -1,13 +1,13 @@
 <template>
   <navbar />
-  <div class="min-h-screen flex justify-center items-center p-4">
+  <div class="min-h-screen flex justify-center items-center p-24">
     <div
       class="w-full max-w-4xl bg-gray-200 bg-opacity-50 rounded-lg shadow-lg transition-opacity duration-700 ease-in p-1"
       :class="{ 'opacity-100': isAnimated }"
     >
       <vue-good-table
         :columns="columns"
-        :rows="users"
+        :rows="filteredTutors"
         :pagination-options="{ enabled: true }"
         :search-options="{ enabled: true }"
         styleClass="vgt-table striped condensed"
@@ -33,7 +33,9 @@
             {{ props.row.slots }}
           </span>
           <span v-else-if="props.column.field === 'area'">
-            {{ props.row.areaId === 0 ? "NaN" : getAreaName(props.row.areaId) }}
+            {{
+              props.row.area_id === 0 ? "NaN" : getAreaName(props.row.area_id)
+            }}
           </span>
           <span v-else-if="props.column.field === 'expertises'">
             {{
@@ -215,6 +217,7 @@ export default {
             this.$router.push("/dashboard");
           }
           this.user = data;
+          console.log(this.user);
         })
         .catch((error) => {
           console.error("There was a problem fetching the user:", error);
@@ -230,6 +233,7 @@ export default {
         })
         .then((data) => {
           this.users = data;
+          console.log(this.users);
         })
         .catch((error) => {
           console.error("There was a problem fetching the user data:", error);
@@ -255,7 +259,7 @@ export default {
     },
     getAreaName(areaId) {
       const area = this.areas.find((area) => area.id === areaId);
-      return area ? area.name : "Not Found";
+      return area ? area.name : "NaN";
     },
     editUser(user) {
       this.editingUser = { ...user, originalType: user.type };
@@ -326,6 +330,18 @@ export default {
       }
       // If no area is selected, return all expertises
       return this.expertises;
+    },
+    filteredTutors() {
+      if (this.user.type === "admin") {
+        return this.users;
+      } else {
+        return this.users.filter(
+          (user) =>
+            user.area_id === this.user.area_id ||
+            user.area_id == null ||
+            user.area_id === 0
+        );
+      }
     },
   },
   mounted() {

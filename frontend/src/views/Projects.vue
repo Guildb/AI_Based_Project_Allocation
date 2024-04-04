@@ -1,13 +1,13 @@
 <template>
   <navbar />
-  <div class="min-h-screen flex justify-center items-center p-4 p-24">
+  <div class="min-h-screen flex justify-center items-center p-24">
     <div
       class="w-full max-w-4xl bg-gray-200 bg-opacity-50 rounded-lg shadow-lg transition-opacity duration-700 ease-in p-1"
       :class="{ 'opacity-100': isAnimated }"
     >
       <vue-good-table
         :columns="columns"
-        :rows="projects"
+        :rows="filteredProjects"
         :pagination-options="{ enabled: true }"
         :search-options="{ enabled: true }"
         styleClass="vgt-table striped condensed"
@@ -58,87 +58,105 @@
       class="fixed inset-0 bg-gray-500 bg-opacity-75 flex justify-center items-center p-4"
     >
       <div class="bg-white p-4 sm:p-6 rounded-lg max-w-md w-full space-y-4">
-        <div class="text-lg font-semibold">
-          {{ editingProject ? "Edit Project" : "Project Details" }}
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium text-gray-700"
-            >Project Name</label
-          >
-          <div
-            class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 justify-center block w-full sm:text-sm border-gray-300 rounded-md"
-          >
-            {{ inspectingProject.name }}
+        <div v-if="editingProject">
+          <div class="text-lg font-semibold">Edit Project</div>
+          <div>
+            New Tutor:
+            <select
+              v-model="newTutorId"
+              class="bg-gray-200 text-gray-700 py-1 px-2 rounded w-full"
+            >
+              <option
+                v-for="tutor in matched_tutors"
+                :key="tutor.tutor_id"
+                :value="tutor.tutor_id"
+              >
+                {{ getTutorName(tutor.tutor_id) }} With:
+                {{ tutor.match_percentage * 100 }} %
+              </option>
+            </select>
           </div>
         </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700"
-            >Description</label
-          >
-          <div class="mt-1">
+        <div v-else>
+          <div class="text-lg font-semibold">Project Details</div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700"
+              >Project Name</label
+            >
             <div
               class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 justify-center block w-full sm:text-sm border-gray-300 rounded-md"
             >
-              {{ inspectingProject.description }}
+              {{ inspectingProject.name }}
             </div>
           </div>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700"
-            >Student Name</label
-          >
-          <div class="mt-1">
-            <div
-              class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 justify-center block w-full sm:text-sm border-gray-300 rounded-md"
+          <div>
+            <label class="block text-sm font-medium text-gray-700"
+              >Description</label
             >
-              {{ this.getStudentName(inspectingProject.student_id) }}
+            <div class="mt-1">
+              <div
+                class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 justify-center block w-full sm:text-sm border-gray-300 rounded-md"
+              >
+                {{ inspectingProject.description }}
+              </div>
             </div>
           </div>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700"
-            >Tutor Name</label
-          >
-          <div class="mt-1">
-            <div
-              class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+          <div>
+            <label class="block text-sm font-medium text-gray-700"
+              >Student Name</label
             >
-              {{ this.getTutorName(inspectingProject.tutor_id) }}
+            <div class="mt-1">
+              <div
+                class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 justify-center block w-full sm:text-sm border-gray-300 rounded-md"
+              >
+                {{ this.getStudentName(inspectingProject.student_id) }}
+              </div>
             </div>
           </div>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Area</label>
-          <div class="mt-1">
-            <div
-              class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 justify-center block w-full sm:text-sm border-gray-300 rounded-md"
+          <div>
+            <label class="block text-sm font-medium text-gray-700"
+              >Tutor Name</label
             >
-              {{ this.getAreaName(inspectingProject.area_id) }}
+            <div class="mt-1">
+              <div
+                class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+              >
+                {{ this.getTutorName(inspectingProject.tutor_id) }}
+              </div>
             </div>
           </div>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700"
-            >Expertises</label
-          >
-          <div class="mt-1">
-            <div
-              class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 justify-center block w-full sm:text-sm border-gray-300 rounded-md"
-            >
-              {{ this.getExpertiseNames(inspectingProject.expertises) }}
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Area</label>
+            <div class="mt-1">
+              <div
+                class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 justify-center block w-full sm:text-sm border-gray-300 rounded-md"
+              >
+                {{ this.getAreaName(inspectingProject.area_id) }}
+              </div>
             </div>
           </div>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700"
-            >Alocated</label
-          >
-          <div class="mt-1">
-            <div
-              class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 justify-center block w-full sm:text-sm border-gray-300 rounded-md"
+          <div>
+            <label class="block text-sm font-medium text-gray-700"
+              >Expertises</label
             >
-              {{ inspectingProject.alocated ? "Alocated" : "Not Alocated" }}
+            <div class="mt-1">
+              <div
+                class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 justify-center block w-full sm:text-sm border-gray-300 rounded-md"
+              >
+                {{ this.getExpertiseNames(inspectingProject.expertises) }}
+              </div>
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700"
+              >Alocated</label
+            >
+            <div class="mt-1">
+              <div
+                class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 justify-center block w-full sm:text-sm border-gray-300 rounded-md"
+              >
+                {{ inspectingProject.alocated ? "Alocated" : "Not Alocated" }}
+              </div>
             </div>
           </div>
         </div>
@@ -147,21 +165,21 @@
           class="flex flex-col sm:flex-row justify-center sm:space-x-2 space-y-2 sm:space-y-0"
         >
           <button
-            v-if="!editingProject"
+            v-if="!editingProject && inspectingProject.student_id"
             @click="editingProject = true"
             class="w-full sm:w-auto bg-slate-700 hover:bg-blue-700 flex-1 justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
             Edit
           </button>
           <button
-            v-if="editingProject"
-            @click="findTutor()"
+            v-if="editingProject && !findTutor"
+            @click="findTutors()"
             class="w-full sm:w-auto bg-slate-700 hover:bg-green-700 flex-1 justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
             Find Tutor
           </button>
           <button
-            v-if="editingProject"
+            v-if="findTutor"
             @click="saveProject()"
             class="w-full sm:w-auto bg-slate-700 hover:bg-blue-700 flex-1 justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
@@ -195,7 +213,10 @@ export default {
       isAnimated: false,
       editingProject: false,
       showModal: false,
+      findTutor: false,
       inspectingProject: null,
+      newTutorId: null,
+      matched_tutors: [],
       tutors: [],
       students: [],
       areas: [],
@@ -299,17 +320,17 @@ export default {
     },
     getAreaName(areaId) {
       const area = this.areas.find((area) => area.id === areaId);
-      return area ? area.name : "Not Found";
+      return area ? area.name : "NaN";
     },
     getStudentName(studentId) {
       const sName = this.students.find(
         (student) => student.student_id === studentId
       );
-      return sName ? `${sName.firstName} ${sName.lastName}` : "Not Found";
+      return sName ? `${sName.firstName} ${sName.lastName}` : "NaN";
     },
     getTutorName(tutorId) {
       const tName = this.tutors.find((tutor) => tutor.tutor_id === tutorId);
-      return tName ? `${tName.firstName} ${tName.lastName}` : "Not Found";
+      return tName ? `${tName.firstName} ${tName.lastName}` : "NaN";
     },
     fetchProjects() {
       fetch(`${process.env.VUE_APP_BACKEND_URL}/projects`)
@@ -359,20 +380,33 @@ export default {
           console.error("There was a problem deleting the project:", error);
         });
     },
-    editProject(project) {
-      this.editingProject = { ...project };
+    cancelEdit() {
+      this.showModal = false;
+      this.editingProject = false;
+      this.findTutor = false;
+      this.inspectingProject = null;
     },
-    async saveProject() {
+    moreDetails(project) {
+      this.inspectingProject = { ...project };
+      this.showModal = true;
+    },
+    async findTutors() {
+      this.findTutor = true;
+      const token = localStorage.getItem("token");
       try {
-        console.log(this.editingProject);
+        console.log(this.inspectingProject);
         const response = await fetch(
-          `${process.env.VUE_APP_BACKEND_URL}/changeProject`,
+          `${process.env.VUE_APP_BACKEND_URL}/findTutor`,
           {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
             },
-            body: JSON.stringify({ user: this.editingProject }),
+            body: JSON.stringify({
+              project: this.inspectingProject,
+              tutors: this.tutors,
+            }),
           }
         );
 
@@ -380,21 +414,27 @@ export default {
           throw new Error("Network response was not ok");
         }
 
-        await response.json();
-        this.cancelEdit();
-        this.fetchProjects();
+        const data = await response.json();
+        this.matched_tutors = data.match_percentages;
+        console.log(this.matched_tutors);
       } catch (error) {
         console.error("There was a problem editing the project:", error);
       }
     },
-    cancelEdit() {
-      this.showModal = false;
-      this.editingProject = false;
-      this.inspectingProject = null;
-    },
-    moreDetails(project) {
-      this.inspectingProject = { ...project };
-      this.showModal = true;
+    async saveProject() {},
+  },
+  computed: {
+    filteredProjects() {
+      if (this.user.type === "admin") {
+        return this.projects;
+      } else {
+        return this.projects.filter(
+          (project) =>
+            project.area_id === this.user.area_id ||
+            project.area_id == null ||
+            project.area_id === 0
+        );
+      }
     },
   },
   mounted() {

@@ -1,6 +1,6 @@
 <template>
   <navbar />
-  <div class="min-h-screen flex justify-center items-center p-4">
+  <div class="min-h-screen flex justify-center items-center p-24">
     <div
       class="w-full max-w-4xl bg-gray-200 bg-opacity-50 rounded-lg shadow-lg transition-opacity duration-700 ease-in p-1"
       :class="{ 'opacity-100': isAnimated }"
@@ -239,7 +239,7 @@ export default {
     },
     findAreaName(areaId) {
       const area = this.areas.find((area) => area.id === areaId);
-      return area ? area.name : "Unknown Area";
+      return area ? area.name : "NaN";
     },
     deleteExpertise(expertise_id) {
       const token = localStorage.getItem("token");

@@ -1,6 +1,6 @@
 <template>
   <navbar />
-  <div class="min-h-screen flex justify-center items-center">
+  <div class="min-h-screen flex justify-center items-center p-24">
     <div
       class="w-3/4 bg-gray-200 bg-opacity-50 rounded-lg shadow-lg p-4 transition-opacity duration-700 ease-in opacity-0"
       :class="{ 'opacity-100': isAnimated }"
@@ -12,23 +12,84 @@
         <h1 class="text-4xl font-bold mb-4 text-slate-700">
           Welcome {{ user.firstName }} {{ user.lastName }}
         </h1>
-        <button
-          v-if="user.type === 'student' && !user.student_id"
-          @click="addStudentNumber()"
-          class="bg-slate-700 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+        <div
+          class="flex flex-col sm:flex-row justify-center sm:space-x-2 space-y-2 sm:space-y-0"
         >
-          Add Student Number
-        </button>
-        <button
-          v-if="
-            user.type !== 'student' ||
-            (user.type === 'student' && !user.project && user.student_id)
-          "
-          @click="addProject()"
-          class="bg-slate-700 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
-        >
-          Add Project
-        </button>
+          <button
+            v-if="user.type === 'student' && !user.student_id"
+            @click="addStudentNumber()"
+            class="bg-slate-700 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+          >
+            Add Student Number
+          </button>
+          <button
+            v-if="
+              user.type !== 'student' ||
+              (user.type === 'student' && !user.project && user.student_id)
+            "
+            @click="addProject()"
+            class="bg-slate-700 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          >
+            Add Project
+          </button>
+          <button
+            v-if="
+              user.type === 'student' &&
+              !user.project &&
+              !availableProjects &&
+              user.student_id
+            "
+            @click="this.availableProjects = true"
+            class="bg-slate-700 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          >
+            Available Projects
+          </button>
+          <button
+            v-if="availableProjects && !user.project"
+            @click="this.availableProjects = false"
+            class="bg-slate-700 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+          >
+            Close
+          </button>
+        </div>
+        <div v-if="availableProjects && !user.project" class="pt-4">
+          <vue-good-table
+            :columns="studentColumns"
+            :rows="filteredProjects"
+            :pagination-options="{ enabled: true }"
+            :search-options="{ enabled: true }"
+            styleClass="vgt-table striped condensed"
+            theme="nocturnal"
+          >
+            <template v-slot:table-row="props">
+              <span v-if="props.column.field === 'name'">
+                {{ props.row.name }}
+              </span>
+              <span v-else-if="props.column.field === 'tutorName'">
+                {{
+                  props.row.tutor_id ? getTutorName(props.row.tutor_id) : "NaN"
+                }}
+              </span>
+              <span v-else-if="props.column.field === 'alocated'">
+                {{ props.row.alocated ? "Alocated" : "Not Alocated" }}
+              </span>
+              <span v-else-if="props.column.field === 'actions'">
+                <button
+                  @click="moreDetails(props.row)"
+                  class="w-full sm:w-auto bg-slate-700 hover:bg-blue-700 flex-1 justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                >
+                  More Details
+                </button>
+                <button
+                  @click="chooseProject(props.row.id)"
+                  class="w-full sm:w-auto bg-slate-700 hover:bg-red-700 flex-1 justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                >
+                  Choose
+                </button>
+              </span>
+            </template>
+          </vue-good-table>
+        </div>
 
         <div v-if="user.type !== 'student' && user.projects" class="pt-4">
           <vue-good-table
@@ -123,6 +184,17 @@
             class="bg-gray-200 text-gray-700 py-1 px-2 rounded w-full"
           />
         </div>
+        <div>
+          Area
+          <select
+            v-model="newSareaId"
+            class="bg-gray-200 text-gray-700 py-1 px-2 rounded w-full"
+          >
+            <option v-for="area in areas" :key="area.id" :value="area.id">
+              {{ area.name }}
+            </option>
+          </select>
+        </div>
         <div class="flex justify-center space-x-2">
           <button
             @click="saveSNumber()"
@@ -165,17 +237,6 @@
             class="bg-gray-200 text-gray-700 py-1 px-2 rounded w-full"
           ></textarea>
         </div>
-        <div>
-          Area
-          <select
-            v-model="newProject.area_id"
-            class="bg-gray-200 text-gray-700 py-1 px-2 rounded w-full"
-          >
-            <option v-for="area in areas" :key="area.id" :value="area.id">
-              {{ area.name }}
-            </option>
-          </select>
-        </div>
         <div v-if="user.type === 'student'">
           Pre selected Tutor
           <select
@@ -183,7 +244,11 @@
             class="bg-gray-200 text-gray-700 py-1 px-2 rounded w-full"
           >
             <option :key="null" :value="null">N/A</option>
-            <option v-for="tutor in tutors" :key="tutor.id" :value="tutor.id">
+            <option
+              v-for="tutor in filteredTutors"
+              :key="tutor.id"
+              :value="tutor.id"
+            >
               {{ tutor.firstName }} {{ tutor.lastName }}
             </option>
           </select>
@@ -258,7 +323,19 @@
             </div>
           </div>
         </div>
-        <div>
+        <div v-if="this.user.type === 'student'">
+          <label class="block text-sm font-medium text-gray-700"
+            >Tutor Name</label
+          >
+          <div class="mt-1">
+            <div
+              class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 justify-center block w-full sm:text-sm border-gray-300 rounded-md"
+            >
+              {{ getTutorName(inspectingProject.tutor_id) }}
+            </div>
+          </div>
+        </div>
+        <div v-else>
           <label class="block text-sm font-medium text-gray-700"
             >Student Name</label
           >
@@ -266,7 +343,7 @@
             <div
               class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 justify-center block w-full sm:text-sm border-gray-300 rounded-md"
             >
-              {{ this.getStudentName(inspectingProject.student_id) }}
+              {{ getStudentName(inspectingProject.student_id) }}
             </div>
           </div>
         </div>
@@ -276,7 +353,7 @@
             <div
               class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 justify-center block w-full sm:text-sm border-gray-300 rounded-md"
             >
-              {{ this.getAreaName(inspectingProject.area_id) }}
+              {{ getAreaName(inspectingProject.area_id) }}
             </div>
           </div>
         </div>
@@ -288,7 +365,7 @@
             <div
               class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 justify-center block w-full sm:text-sm border-gray-300 rounded-md"
             >
-              {{ this.getExpertiseNames(inspectingProject.expertises) }}
+              {{ getExpertiseNames(inspectingProject.expertises) }}
             </div>
           </div>
         </div>
@@ -335,13 +412,16 @@ export default {
       addProjectModal: false,
       addSNumberModal: false,
       projectDetailsModal: false,
+      availableProjects: false,
       inspectingProject: null,
       newSNumber: "",
+      newSareaId: null,
       user: {},
       areas: [],
       expertises: [],
       tutors: [],
       students: [],
+      projects: [],
       newProject: {
         name: "",
         description: "",
@@ -351,6 +431,17 @@ export default {
         alocated: null,
         expertises: [],
       },
+      studentColumns: [
+        { label: "Project Name", field: "name" },
+        { label: "Tutor Name", field: "tutorName" },
+        { label: "Alocated", field: "alocated" },
+        {
+          label: "Actions",
+          field: "actions",
+          sortable: false,
+          tdClass: "text-right",
+        },
+      ],
       columns: [
         { label: "Project Name", field: "name" },
         { label: "Student Name", field: "studentName" },
@@ -375,6 +466,7 @@ export default {
     },
     addProject() {
       this.addProjectModal = true;
+      this.newProject.area_id = this.user.area_id;
     },
     saveProject() {
       if (this.user.type === "student") {
@@ -445,6 +537,25 @@ export default {
         .then((data) => (this.expertises = data))
         .catch((error) => console.error("Error fetching expertises:", error));
     },
+    fetchProjects() {
+      fetch(`${process.env.VUE_APP_BACKEND_URL}/projects`)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Network response was not ok");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          this.projects = data;
+          console.log(this.projects);
+        })
+        .catch((error) => {
+          console.error(
+            "There was a problem fetching the projects data:",
+            error
+          );
+        });
+    },
     getExpertiseNames(expertiseIds) {
       return this.expertises
         .filter((expertise) => expertiseIds.includes(expertise.id))
@@ -453,7 +564,7 @@ export default {
     },
     getAreaName(areaId) {
       const area = this.areas.find((area) => area.id === areaId);
-      return area ? area.name : "Not Found";
+      return area ? area.name : "NaN";
     },
     fetchTutors() {
       fetch(`${process.env.VUE_APP_BACKEND_URL}/tutors`) // Adjust the URL as needed
@@ -509,6 +620,7 @@ export default {
           this.user = data;
           if (this.user.type === "student") {
             this.fetchTutors();
+            this.fetchProjects();
           } else {
             this.fetchStudents();
           }
@@ -524,13 +636,13 @@ export default {
     },
     getTutorName(tutorId) {
       const tName = this.tutors.find((tutor) => tutor.tutor_id === tutorId);
-      return tName ? `${tName.firstName} ${tName.lastName}` : "Not Found";
+      return tName ? `${tName.firstName} ${tName.lastName}` : "NaN";
     },
     getStudentName(studentId) {
       const sName = this.students.find(
         (student) => student.student_id === studentId
       );
-      return sName ? `${sName.firstName} ${sName.lastName}` : "Not Found";
+      return sName ? `${sName.firstName} ${sName.lastName}` : "NaN";
     },
     addStudentNumber() {
       this.addSNumberModal = true;
@@ -538,9 +650,15 @@ export default {
     },
     saveSNumber() {
       const newSNumber = this.newSNumber.trim();
+      const newSareaId = this.newSareaId;
+      console.log("area id:", newSareaId);
       const token = localStorage.getItem("token");
       if (!newSNumber) {
         alert("Student Number is required");
+        return;
+      }
+      if (!newSareaId) {
+        alert("You need to select an Area");
         return;
       }
       fetch(`${process.env.VUE_APP_BACKEND_URL}/addStudentNumber`, {
@@ -552,6 +670,7 @@ export default {
         body: JSON.stringify({
           sudent_number: newSNumber,
           user_id: this.user.id,
+          area_id: newSareaId,
         }),
       })
         .then((response) => {
@@ -598,6 +717,32 @@ export default {
           console.error("There was a problem deleting the project:", error);
         });
     },
+    chooseProject(project_id) {
+      const token = localStorage.getItem("token");
+      fetch(`${process.env.VUE_APP_BACKEND_URL}/chooseProject`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          project_id: project_id,
+          student_id: this.user.student_id,
+        }),
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Network response was not ok");
+          }
+          return response.json();
+        })
+        .then(() => {
+          this.getInicialData();
+        })
+        .catch((error) => {
+          console.error("There was a problem selecting this project:", error);
+        });
+    },
   },
   computed: {
     filteredExpertises() {
@@ -614,11 +759,17 @@ export default {
       // If an area is selected, filter tutors by the selected areaId
       if (this.newProject.area_id) {
         return this.tutors.filter(
-          (tutor) => tutor.area_id === this.newProject.area_id
+          (tutor) =>
+            tutor.area_id === this.newProject.area_id && tutor.slots > 0
         );
       }
       // If no area is selected, return all tutors
       return this.tutors;
+    },
+    filteredProjects() {
+      return this.projects.filter(
+        (project) => !project.alocated && project.area_id === this.user.area_id
+      );
     },
   },
   mounted() {

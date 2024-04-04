@@ -122,12 +122,13 @@ def configure_routes(app):
         try:
             data = request.get_json()
             sudent_number = data.get('sudent_number')
+            area_id = data.get('area_id')
             user_id = data.get('user_id')
-
-            if not all([sudent_number, user_id]):
+            
+            if not all([sudent_number, user_id, area_id]):
                 return jsonify({'error': 'All fields must be filled'}), 400
 
-            error_message, status_code = store_students_in_database(sudent_number, user_id)
+            error_message, status_code = store_students_in_database(sudent_number, user_id, area_id)
             
             if error_message:
                 return jsonify({'error': error_message}), status_code
@@ -322,3 +323,51 @@ def configure_routes(app):
         except Exception as e:
             app.logger.error(f"Unexpected error while deleting project: {e}", exc_info=True)
             return jsonify({'error': "An unexpected error occurred"}), 500
+
+    @app.route('/chooseProject', methods=['POST', 'OPTIONS'])
+    @token_required
+    def chooseProject(current_user):
+        if request.method == 'OPTIONS':
+            return _build_cors_preflight_response()
+        
+        try:
+            data = request.get_json()
+            project_id = data.get('project_id')
+            student_id = data.get('student_id')
+            success, message = update_project(project_id, student_id)
+
+            if success:
+                return jsonify({'message': message}), 200
+            else:
+                return jsonify({'error': message}), 500
+        except Exception as e:
+            app.logger.error(f"Unexpected error while editing project: {e}", exc_info=True)
+            return jsonify({'error': "An unexpected error occurred"}), 500
+
+    @app.route('/findTutor', methods=['POST', 'OPTIONS'])
+    @token_required
+    def findTutor(current_user):
+        if request.method == 'OPTIONS':
+            return _build_cors_preflight_response()
+        
+        try:
+            logger.info("matching a tutor........")
+            data = request.get_json()
+            project = data.get('project')
+            tutors = data.get('tutors')
+            logger.info(f"Project: {project}")
+            logger.info(f"Tutors: {tutors}")
+            match_percentages = findTutors(project, tutors)
+            return jsonify({'match_percentages': match_percentages}), 200
+        except Exception as e:
+            app.logger.error(f"Unexpected error while finding a match: {e}", exc_info=True)
+            return jsonify({'error': "An unexpected error occurred"}), 500
+
+
+
+
+
+
+
+
+

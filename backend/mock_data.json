@@ -4,70 +4,70 @@
       "firstName": "FirstName1",
       "lastName": "LastName1",
       "email": "user1@example.com",
-      "password": "password",
+      "password": "$2b$12$xCw0eAtgvKTB/X0fD/jIDOYZZ2sagejReofifvv3MoYoLIe7.BX9.",
       "type": "tutor"
     },
     {
       "firstName": "FirstName2",
       "lastName": "LastName2",
       "email": "user2@example.com",
-      "password": "password",
+      "password": "$2b$12$xCw0eAtgvKTB/X0fD/jIDOYZZ2sagejReofifvv3MoYoLIe7.BX9.",
       "type": "tutor"
     },
     {
       "firstName": "FirstName3",
       "lastName": "LastName3",
       "email": "user3@example.com",
-      "password": "password",
+      "password": "$2b$12$xCw0eAtgvKTB/X0fD/jIDOYZZ2sagejReofifvv3MoYoLIe7.BX9.",
       "type": "courseLeader"
     },
     {
       "firstName": "FirstName4",
       "lastName": "LastName4",
       "email": "user4@example.com",
-      "password": "password",
+      "password": "$2b$12$xCw0eAtgvKTB/X0fD/jIDOYZZ2sagejReofifvv3MoYoLIe7.BX9.",
       "type": "tutor"
     },
     {
       "firstName": "FirstName5",
       "lastName": "LastName5",
       "email": "user5@example.com",
-      "password": "password",
+      "password": "$2b$12$xCw0eAtgvKTB/X0fD/jIDOYZZ2sagejReofifvv3MoYoLIe7.BX9.",
       "type": "tutor"
     },
     {
       "firstName": "FirstName6",
       "lastName": "LastName6",
       "email": "user6@example.com",
-      "password": "password",
+      "password": "$2b$12$xCw0eAtgvKTB/X0fD/jIDOYZZ2sagejReofifvv3MoYoLIe7.BX9.",
       "type": "courseLeader"
     },
     {
       "firstName": "FirstName7",
       "lastName": "LastName7",
       "email": "user7@example.com",
-      "password": "password",
+      "password": "$2b$12$xCw0eAtgvKTB/X0fD/jIDOYZZ2sagejReofifvv3MoYoLIe7.BX9.",
       "type": "student"
     },
     {
       "firstName": "FirstName8",
       "lastName": "LastName8",
       "email": "user8@example.com",
-      "password": "password",
+      "password": "$2b$12$xCw0eAtgvKTB/X0fD/jIDOYZZ2sagejReofifvv3MoYoLIe7.BX9.",
       "type": "student"
     },
     {
       "firstName": "FirstName9",
       "lastName": "LastName9",
       "email": "user9@example.com",
-      "password": "password",
+      "password": "$2b$12$xCw0eAtgvKTB/X0fD/jIDOYZZ2sagejReofifvv3MoYoLIe7.BX9.",
       "type": "courseLeader"
     },
     {
       "firstName": "FirstName10",
       "lastName": "LastName10",
       "email": "user10@example.com",
-      "password": "password",
+      "password": "$2b$12$xCw0eAtgvKTB/X0fD/jIDOYZZ2sagejReofifvv3MoYoLIe7.BX9.",
       "type": "student"
     }
   ],
@@ -92,37 +92,37 @@
     {
       "name": "Expertise 1",
       "acronym": "EXP1",
-      "area_id": 2
+      "area_id": 1
     },
     {
       "name": "Expertise 2",
       "acronym": "EXP2",
-      "area_id": 3
+      "area_id": 2
     },
     {
       "name": "Expertise 3",
       "acronym": "EXP3",
-      "area_id": 2
+      "area_id": 3
     },
     {
       "name": "Expertise 4",
       "acronym": "EXP4",
-      "area_id": 1
+      "area_id": 4
     },
     {
       "name": "Expertise 5",
       "acronym": "EXP5",
-      "area_id": 3
+      "area_id": 5
     },
     {
       "name": "Expertise 6",
       "acronym": "EXP6",
-      "area_id": 5
+      "area_id": 1
     },
     {
       "name": "Expertise 7",
       "acronym": "EXP7",
-      "area_id": 3
+      "area_id": 2
     },
     {
       "name": "Expertise 8",
@@ -132,143 +132,232 @@
     {
       "name": "Expertise 9",
       "acronym": "EXP9",
-      "area_id": 1
+      "area_id": 4
     },
     {
       "name": "Expertise 10",
       "acronym": "EXP10",
-      "area_id": 3
+      "area_id": 5
     }
   ],
   "tutors": [
     {
       "slots": 4,
-      "user_id": 2,
-      "area_id": 3
-    },
-    {
-      "slots": 3,
-      "user_id": 3,
-      "area_id": 5
-    },
-    {
-      "slots": 1,
-      "user_id": 4,
-      "area_id": 2
-    },
-    {
-      "slots": 3,
       "user_id": 5,
       "area_id": 1
     },
     {
-      "slots": 1,
+      "slots": 3,
       "user_id": 6,
+      "area_id": 2
+    },
+    {
+      "slots": 19,
+      "user_id": 8,
+      "area_id": 3
+    },
+    {
+      "slots": 3,
+      "user_id": 9,
       "area_id": 4
+    },
+    {
+      "slots": 3,
+      "user_id": 7,
+      "area_id": 5
+    },
+    {
+      "slots": 10,
+      "user_id": 10,
+      "area_id": 1
+    },
+    {
+      "slots": 7,
+      "user_id": 13,
+      "area_id": 2
     }
   ],
   "students": [
     {
       "student_number": "S007",
-      "user_id": 7
+      "user_id": 11,
+      "area_id": 1
     },
     {
       "student_number": "S008",
-      "user_id": 8
+      "user_id": 12,
+      "area_id": 2
     },
     {
       "student_number": "S009",
-      "user_id": 9
-    },
-    {
-      "student_number": "S010",
-      "user_id": 10
-    },
-    {
-      "student_number": "S011",
-      "user_id": 11
+      "user_id": 14,
+      "area_id": 3
     }
   ],
   "projects": [
     {
       "name": "Project 1",
       "description": "Project description 1",
-      "student_id": 3,
-      "tutor_id": 1,
-      "area_id": 4,
-      "alocated": false
+      "student_id": 1,
+      "tutor_id": 3,
+      "area_id": 1,
+      "alocated": true
     },
     {
       "name": "Project 2",
       "description": "Project description 2",
-      "student_id": 1,
-      "tutor_id": 1,
+      "student_id": 2,
+      "tutor_id": 4,
       "area_id": 2,
-      "alocated": false
+      "alocated": true
     },
     {
       "name": "Project 3",
       "description": "Project description 3",
-      "student_id": 1,
-      "tutor_id": 3,
+      "student_id": 3,
+      "tutor_id": 5,
       "area_id": 3,
       "alocated": true
     },
     {
       "name": "Project 4",
       "description": "Project description 4",
-      "student_id": 5,
-      "tutor_id": 4,
-      "area_id": 3,
-      "alocated": true
+      "student_id": null,
+      "tutor_id": 6,
+      "area_id": 4,
+      "alocated": false
     },
     {
       "name": "Project 5",
       "description": "Project description 5",
-      "student_id": 3,
-      "tutor_id": 5,
+      "student_id": null,
+      "tutor_id": 7,
       "area_id": 5,
-      "alocated": true
+      "alocated": false
     },
     {
       "name": "Project 6",
       "description": "Project description 6",
-      "student_id": 1,
-      "tutor_id": 3,
-      "area_id": 3,
-      "alocated": true
+      "student_id": null,
+      "tutor_id": 8,
+      "area_id": 1,
+      "alocated": false
     },
     {
       "name": "Project 7",
       "description": "Project description 7",
-      "student_id": 2,
-      "tutor_id": 3,
+      "student_id": null,
+      "tutor_id": 9,
       "area_id": 2,
-      "alocated": true
+      "alocated": false
     },
     {
       "name": "Project 8",
       "description": "Project description 8",
-      "student_id": 2,
+      "student_id": null,
       "tutor_id": 4,
-      "area_id": 3,
-      "alocated": true
+      "area_id": 2,
+      "alocated": false
     },
     {
       "name": "Project 9",
       "description": "Project description 9",
-      "student_id": 4,
-      "tutor_id": 4,
+      "student_id": null,
+      "tutor_id": 6,
       "area_id": 4,
-      "alocated": true
+      "alocated": false
     },
     {
       "name": "Project 10",
       "description": "Project description 10",
-      "student_id": 5,
-      "tutor_id": 1,
-      "area_id": 4,
-      "alocated": true
+      "student_id": null,
+      "tutor_id": 5,
+      "area_id": 3,
+      "alocated": false
+    }
+  ],
+  "tutor_expertise": [
+    {
+      "tutor_id": 3,
+      "expertise_id": 1
+    },
+    {
+      "tutor_id": 3,
+      "expertise_id": 6
+    },
+    {
+      "tutor_id": 4,
+      "expertise_id": 2
+    },
+    {
+      "tutor_id": 5,
+      "expertise_id": 3
+    },
+    {
+      "tutor_id": 5,
+      "expertise_id": 8
+    },
+    {
+      "tutor_id": 6,
+      "expertise_id": 4
+    },
+    {
+      "tutor_id": 7,
+      "expertise_id": 5
+    },
+    {
+      "tutor_id": 7,
+      "expertise_id": 10
+    },
+    {
+      "tutor_id": 8,
+      "expertise_id": 6
+    },
+    {
+      "tutor_id": 9,
+      "expertise_id": 7
+    }
+  ],
+  "project_expertise": [
+    {
+      "project_id": 1,
+      "expertise_id": 1
+    },
+    {
+      "project_id": 2,
+      "expertise_id": 2
+    },
+    {
+      "project_id": 3,
+      "expertise_id": 3
+    },
+    {
+      "project_id": 4,
+      "expertise_id": 4
+    },
+    {
+      "project_id": 5,
+      "expertise_id": 5
+    },
+    {
+      "project_id": 6,
+      "expertise_id": 6
+    },
+    {
+      "project_id": 7,
+      "expertise_id": 7
+    },
+    {
+      "project_id": 8,
+      "expertise_id": 2
+    },
+    {
+      "project_id": 9,
+      "expertise_id": 9
+    },
+    {
+      "project_id": 10,
+      "expertise_id": 8
     }
   ]
 }

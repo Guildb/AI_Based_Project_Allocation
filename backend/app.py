@@ -33,8 +33,7 @@ with app.app_context():
     create_table_tutor_expertise_if_not_exists()
     create_table_projects_if_not_exists()
     create_table_project_expertise_if_not_exists()
-    createAdmin()
-
+    createDefaultData()
 
 ## Code to get all tables apis
 @app.route('/users', methods=['GET'])
@@ -69,7 +68,7 @@ def get_students():
         with DBPool.get_instance().getconn() as conn:
             with conn.cursor() as cur:
                 cur.execute("""
-                    SELECT u.id, u.firstName, u.lastName, u.email, u.type, COALESCE(s.student_number, 'NaN') AS student_number, s.id
+                    SELECT u.id, u.firstName, u.lastName, u.email, u.type, COALESCE(s.student_number, 'NaN') AS student_number, s.id, s.area_id
                     FROM "users" u
                     LEFT JOIN "students" s ON u.id = s.user_id
                     WHERE u.type = 'student'
@@ -84,7 +83,8 @@ def get_students():
                         'email': row[3],
                         'type': row[4],
                         'student_number': row[5],
-                        'student_id' : row[6] 
+                        'student_id' : row[6],
+                        'area_id': row[7]
                     }
                     users.append(user)
                 return jsonify(users), 200
@@ -133,7 +133,7 @@ def get_tutors():
                         'email': row[4],
                         'type': row[5],
                         'slots': row[6],
-                        'areaId': row[7],
+                        'area_id': row[7],
                         'expertises': expertises
                         
                     })
@@ -295,6 +295,7 @@ def get_student():
                         'id': row[0],
                         'user_id': row[1],
                         'student_number': row[2],
+                        'area_id': row[3]
                     }
                     students.append(student)
                 return jsonify(students), 200
@@ -337,7 +338,7 @@ def get_current_user():
                 
 
                 if user_row[3] == "student":
-                    cur.execute("""SELECT id, COALESCE(student_number, 'NaN') AS student_number
+                    cur.execute("""SELECT id, COALESCE(student_number, 'NaN') AS student_number, area_id
                                 FROM "students" 
                                 WHERE user_id = %s""", (user_id,))
                     student_row = cur.fetchone()
@@ -345,11 +346,13 @@ def get_current_user():
                         user.update({
                             'student_number': None,
                             'student_id' : None,
+                            'area_id': None
                         })
                     else:
                         user.update({
-                            'student_number': student_row[1],
                             'student_id' : student_row[0],
+                            'student_number': student_row[1],
+                            'area_id': student_row[2]
                         })
                         cur.execute("""SELECT *
                                     FROM "projects"
@@ -454,7 +457,7 @@ def get_current_user():
                     })
                         
 
-                    
+                logger.info(f"User:{user}")
                 return jsonify(user), 200
     except Exception as e:
         logger.exception("Error fetching user details: %s", e)

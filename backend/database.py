@@ -14,6 +14,7 @@ import json
 
 
 
+
 logger = logging.getLogger(__name__) 
 load_dotenv()
 JWT_SECRET = os.getenv('JWT_SECRET')
@@ -156,7 +157,8 @@ def create_table_students_if_not_exists():
                         CREATE TABLE "students" (
                             id SERIAL PRIMARY KEY,
                             student_number VARCHAR(255) NOT NULL,
-                            user_id INTEGER REFERENCES "users" (id)
+                            user_id INTEGER REFERENCES "users" (id),
+                            area_id INTEGER REFERENCES "areas" (id)
                         )
                     """)
                     conn.commit()
@@ -354,17 +356,16 @@ def store_tutors_in_database(slots, user_id, area_id):
     finally:
             DBPool.get_instance().putconn(conn)
 
-def store_students_in_database(student_number, user_id):
+def store_students_in_database(student_number, user_id, area_id):
     try:
         with DBPool.get_instance().getconn() as conn:
             with conn.cursor() as cur:
                 try:
                     cur.execute("""
-                        INSERT INTO "students" (student_number, user_id)
-                        VALUES (%s, %s)
-                    """, (student_number, user_id))
+                        INSERT INTO "students" (student_number, user_id, area_id)
+                        VALUES (%s, %s, %s)
+                    """, (student_number, user_id, area_id))
                     conn.commit()
-                    print("student stored successfully")
                     return "student stored successfully.", 200
                 except psycopg2.Error as e:
                     logger.error(f"Failed to insert student: {e}", exc_info=True)  # Log the error with stack trace
@@ -567,6 +568,20 @@ def delete_project(project_id):
     except Exception as e:
         return False, f"Unexpected error: {e}"
 
+def delete_old_user(cur, oldType, id):
+    try:
+        cur.execute(f"DELETE FROM {oldType} WHERE user_id = %s", ( id,))
+    except Exception as e:
+        raise ValueError(f"Error deleting old user: {e}")
+
+def delete_old_expertises(cur, user):
+    logging.info("Deleting old expertises: %s", user['tutor_id'])
+    try:
+        cur.execute("DELETE FROM tutor_expertise WHERE tutor_id = %s", (user['tutor_id'],))
+    except Exception as e:
+        raise ValueError(f"Error deleting old expertises: {e}")
+  
+
 #session functions
 def create_token(user_id, time, user_type):
     payload = {
@@ -685,12 +700,6 @@ def check_user_type(userId):
             oldType = cur.fetchone()[0]
             return oldType
 
-def delete_old_user(cur, oldType, id):
-    try:
-        cur.execute(f"DELETE FROM {oldType} WHERE user_id = %s", ( id,))
-    except Exception as e:
-        raise ValueError(f"Error deleting old user: {e}")
-
 def update_user(user):
     try:
         with DBPool.get_instance().getconn() as conn:
@@ -737,13 +746,6 @@ def change_tutor_details(cur, user):
         logging.info("%s rows updated in tutor details for user: %s", affected_rows, user['id'])
     except Exception as e:
         raise ValueError(f"Error updating tutor details: {e}")
-    
-def delete_old_expertises(cur, user):
-    logging.info("Deleting old expertises: %s", user['tutor_id'])
-    try:
-        cur.execute("DELETE FROM tutor_expertise WHERE tutor_id = %s", (user['tutor_id'],))
-    except Exception as e:
-        raise ValueError(f"Error deleting old expertises: {e}")
     
 def add_new_expertises(cur, user):
     logging.info("Adding new expertyises: %s", user['id'])
@@ -851,18 +853,71 @@ def add_project(project):
     finally:
         DBPool.get_instance().putconn(conn)
 
+def update_project(project_id, student_id):
+    try:
+        with DBPool.get_instance().getconn() as conn:
+            with conn.cursor() as cur:
+                try:
+                    cur.execute("""
+                        UPDATE "projects"
+                        SET student_id = %s, alocated = true
+                        WHERE id = %s;
+                    """, (student_id, project_id))
+                    conn.commit()
 
-def createAdmin():
+                    if cur.rowcount == 0:
+                        return False, "project not found"
+            
+                    return True, "project selected successfully"
+
+                except psycopg2.Error as e:
+                    conn.rollback() 
+                    return f"Failed to change project:", 500
+                except Exception as e:
+                    conn.rollback() 
+                    return f"Unexpected error: {e}", 500
+    except psycopg2.Error as e:
+        return f"Unable to create link: {e}"
+    finally:
+            DBPool.get_instance().putconn(conn)
+
+def findTutors(project, tutors):
+    match_percentages = []
+
+    for tutor in tutors:
+        if tutor["area_id"] == project["area_id"]:
+            # Calculate the intersection of tutor's expertises and project's required expertises
+            matched_expertises = set(tutor["expertises"]).intersection(set(project["expertises"]))
+            match_percentage = len(matched_expertises) / len(project["expertises"])
+            
+            # Append the match percentage along with tutor's id
+            match_percentages.append({"tutor_id": tutor["id"], "match_percentage": match_percentage})
+        
+    # Sort the list by match percentage in descending order
+    match_percentages.sort(key=lambda x: x["match_percentage"], reverse=True)
+    logger.info(f"matched tutors: {match_percentages}")
+    return match_percentages
+
+#Creat mock data to use the app
+def createDefaultData():
     try:
         with DBPool.get_instance().getconn() as conn:
             with conn.cursor() as cur:
                 cur.execute("SELECT * FROM \"users\"")
                 user = cur.fetchone()
                 if not user:
-                    password = "admin"
+                    logger.info('loading mock data')
+                    password = "password"
                     hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
                     hashed_password = hashed_password.decode('utf8')
-                    store_user_in_database("Admin","Admin","admin@admin.com",hashed_password,"admin")
+                    store_user_in_database("Admin","Admin","admin@hotmail.com",hashed_password,"admin")
+                    store_user_in_database("Student","Default","student@hotmail.com",hashed_password,"student")
+                    store_user_in_database("Tutor","Default","tutor@hotmail.com",hashed_password,"tutor")
+                    store_tutors_in_database(0, 3, 1)
+                    store_user_in_database("Course","Leader","courseleader@hotmail.com",hashed_password,"courseLeader")
+                    store_tutors_in_database(0, 4, 1)
+                    load_mock_data()
+                    logger.info('Mock data Loaded')
     except Exception as e:
         logger.exception("Error fetching users: %s", e)
     finally:
@@ -882,16 +937,17 @@ def insert_data(db_pool, table_name, data):
             conn.commit()
 
 def load_mock_data():
-    # Load mock data from JSON file
     with open('mock_data.json', 'r') as file:
         mock_data = json.load(file)
     
-    # Insert data into each table
     insert_data(DBPool, 'users', mock_data['users'])
     insert_data(DBPool, 'areas', mock_data['areas'])
     insert_data(DBPool, 'expertises', mock_data['expertises'])
     insert_data(DBPool, 'tutors', mock_data['tutors'])
     insert_data(DBPool, 'students', mock_data['students'])
     insert_data(DBPool, 'projects', mock_data['projects'])
+    insert_data(DBPool, 'tutor_expertise', mock_data['tutor_expertise'])
+    insert_data(DBPool, 'project_expertise', mock_data['project_expertise'])
 
     print("Mock data inserted successfully.")
+

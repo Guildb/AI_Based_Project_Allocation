@@ -1,13 +1,13 @@
 <template>
   <navbar />
-  <div class="min-h-screen flex justify-center items-center p-4">
+  <div class="min-h-screen flex justify-center items-center p-24">
     <div
       class="w-full max-w-4xl bg-gray-200 bg-opacity-50 rounded-lg shadow-lg transition-opacity duration-700 ease-in p-1"
       :class="{ 'opacity-100': isAnimated }"
     >
       <vue-good-table
         :columns="columns"
-        :rows="users"
+        :rows="filteredStudents"
         :pagination-options="{ enabled: true }"
         :search-options="{ enabled: true }"
         styleClass="vgt-table striped condensed"
@@ -149,6 +149,7 @@ export default {
             this.$router.push("/dashboard");
           }
           this.user = data;
+          console.log(this.user);
         })
         .catch((error) => {
           console.error("There was a problem fetching the user:", error);
@@ -184,7 +185,6 @@ export default {
       this.editingUserId = null;
       this.fetchUsers();
     },
-
     fetchUsers() {
       fetch(`${process.env.VUE_APP_BACKEND_URL}/students`)
         .then((response) => {
@@ -199,6 +199,7 @@ export default {
             showDropdown: false,
             newType: user.type,
           }));
+          console.log(this.users);
         })
         .catch((error) => {
           console.error("There was a problem fetching the user data:", error);
@@ -252,6 +253,21 @@ export default {
         });
     },
   },
+  computed: {
+    filteredStudents() {
+      if (this.user.type === "admin") {
+        return this.users;
+      } else {
+        return this.users.filter(
+          (user) =>
+            user.area_id === this.user.area_id ||
+            user.area_id == null ||
+            user.area_id === 0
+        );
+      }
+    },
+  },
+
   mounted() {
     setTimeout(() => {
       this.isAnimated = true;
