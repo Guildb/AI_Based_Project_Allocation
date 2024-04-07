@@ -1,6 +1,34 @@
 {
   "users": [
     {
+      "firstName": "Admin",
+      "lastName": "Admin",
+      "email": "admin@example.com",
+      "password": "$2b$12$xCw0eAtgvKTB/X0fD/jIDOYZZ2sagejReofifvv3MoYoLIe7.BX9.",
+      "type": "admin"
+    },
+    {
+      "firstName": "Student",
+      "lastName": "Default",
+      "email": "student@example.com",
+      "password": "$2b$12$xCw0eAtgvKTB/X0fD/jIDOYZZ2sagejReofifvv3MoYoLIe7.BX9.",
+      "type": "student"
+    },
+    {
+      "firstName": "Tutor",
+      "lastName": "Default",
+      "email": "tutor@example.com",
+      "password": "$2b$12$xCw0eAtgvKTB/X0fD/jIDOYZZ2sagejReofifvv3MoYoLIe7.BX9.",
+      "type": "tutor"
+    },
+    {
+      "firstName": "Course",
+      "lastName": "Leader",
+      "email": "courseleader@example.com",
+      "password": "$2b$12$xCw0eAtgvKTB/X0fD/jIDOYZZ2sagejReofifvv3MoYoLIe7.BX9.",
+      "type": "courseLeader"
+    },
+    {
       "firstName": "FirstName1",
       "lastName": "LastName1",
       "email": "user1@example.com",
@@ -141,6 +169,16 @@
     }
   ],
   "tutors": [
+    {
+      "slots": 0,
+      "user_id": 3,
+      "area_id": 1
+    },
+    {
+      "slots": 0,
+      "user_id": 4,
+      "area_id": 1
+    },
     {
       "slots": 4,
       "user_id": 5,

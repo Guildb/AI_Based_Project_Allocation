@@ -149,7 +149,6 @@ export default {
             this.$router.push("/dashboard");
           }
           this.user = data;
-          console.log(this.user);
         })
         .catch((error) => {
           console.error("There was a problem fetching the user:", error);
@@ -180,10 +179,9 @@ export default {
           console.error("There was a problem updating the user type:", error);
         }
       } else {
-        console.log("User type has not changed.");
+        this.editingUserId = null;
+        this.fetchUsers();
       }
-      this.editingUserId = null;
-      this.fetchUsers();
     },
     fetchUsers() {
       fetch(`${process.env.VUE_APP_BACKEND_URL}/students`)
@@ -199,7 +197,6 @@ export default {
             showDropdown: false,
             newType: user.type,
           }));
-          console.log(this.users);
         })
         .catch((error) => {
           console.error("There was a problem fetching the user data:", error);

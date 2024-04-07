@@ -217,7 +217,6 @@ export default {
             this.$router.push("/dashboard");
           }
           this.user = data;
-          console.log(this.user);
         })
         .catch((error) => {
           console.error("There was a problem fetching the user:", error);
@@ -233,7 +232,6 @@ export default {
         })
         .then((data) => {
           this.users = data;
-          console.log(this.users);
         })
         .catch((error) => {
           console.error("There was a problem fetching the user data:", error);
@@ -268,7 +266,6 @@ export default {
     async saveUser() {
       const token = localStorage.getItem("token");
       try {
-        console.log(this.editingUser);
         const response = await fetch(
           `${process.env.VUE_APP_BACKEND_URL}/changeTutors`,
           {

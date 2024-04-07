@@ -64,12 +64,12 @@
               </label>
             </div>
             <div class="text-sm">
-              <a
-                href="#"
+              <router-link
+                to="/forgotPassword"
                 class="font-medium text-slate-700 hover:text-green-700"
               >
                 Forgot your password?
-              </a>
+              </router-link>
             </div>
           </div>
 
@@ -78,13 +78,13 @@
           >
             <button
               type="submit"
-              class="w-full sm:w-auto bg-slate-700 hover:bg-green-700 flex-1 justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              class="w-full sm:w-auto bg-slate-700 hover:bg-blue-700 inline-flex items-center justify-center flex-1 py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
               Login
             </button>
             <router-link
               to="/signup"
-              class="w-full sm:w-auto bg-slate-700 hover:bg-green-700 inline-flex items-center justify-center flex-1 py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              class="w-full sm:w-auto bg-slate-700 hover:bg-blue-700 inline-flex items-center justify-center flex-1 py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
               Create Account
             </router-link>
@@ -117,7 +117,6 @@ export default {
       if (this.remember) {
         newTime = 72;
       }
-      console.log("token time:", newTime);
       fetch(`${process.env.VUE_APP_BACKEND_URL}/login`, {
         method: "POST",
         headers: {
@@ -139,7 +138,6 @@ export default {
           return response.json();
         })
         .then((data) => {
-          console.log("Login successful:", data);
           // TODO: Handle login success, e.g., storing the session token, if any
           localStorage.setItem("token", data.token);
           this.$router.push("/dashboard");

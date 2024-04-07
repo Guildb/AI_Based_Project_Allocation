@@ -898,6 +898,62 @@ def findTutors(project, tutors):
     logger.info(f"matched tutors: {match_percentages}")
     return match_percentages
 
+def update_new_tutor(project):
+    try:
+        with DBPool.get_instance().getconn() as conn:
+            with conn.cursor() as cur:
+                try:
+                    cur.execute("""
+                        UPDATE "projects"
+                        SET tutor_id = %s, alocated = true
+                        WHERE id = %s;
+                    """, (project["tutor_id"], project["id"]))
+                    conn.commit()
+
+                    if cur.rowcount == 0:
+                        return False, "project not found"
+            
+                    return True, "project updated successfully"
+
+                except psycopg2.Error as e:
+                    conn.rollback() 
+                    return f"Failed to change project:", 500
+                except Exception as e:
+                    conn.rollback() 
+                    return f"Unexpected error: {e}", 500
+    except psycopg2.Error as e:
+        return f"Unable to create link: {e}"
+    finally:
+            DBPool.get_instance().putconn(conn)
+            
+def change_user_password(email, password):
+    try:
+        with DBPool.get_instance().getconn() as conn:
+            with conn.cursor() as cur:
+                try:
+                    cur.execute("""
+                        UPDATE "users"
+                        SET password = %s
+                        WHERE email = %s;
+                    """, (password, email))
+                    conn.commit()
+
+                    if cur.rowcount == 0:
+                        return False, "user not found"
+            
+                    return True, "password updated successfully"
+
+                except psycopg2.Error as e:
+                    conn.rollback() 
+                    return f"Failed to change project:", 500
+                except Exception as e:
+                    conn.rollback() 
+                    return f"Unexpected error: {e}", 500
+    except psycopg2.Error as e:
+        return f"Unable to create link: {e}"
+    finally:
+            DBPool.get_instance().putconn(conn)
+
 #Creat mock data to use the app
 def createDefaultData():
     try:
@@ -907,15 +963,6 @@ def createDefaultData():
                 user = cur.fetchone()
                 if not user:
                     logger.info('loading mock data')
-                    password = "password"
-                    hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
-                    hashed_password = hashed_password.decode('utf8')
-                    store_user_in_database("Admin","Admin","admin@hotmail.com",hashed_password,"admin")
-                    store_user_in_database("Student","Default","student@hotmail.com",hashed_password,"student")
-                    store_user_in_database("Tutor","Default","tutor@hotmail.com",hashed_password,"tutor")
-                    store_tutors_in_database(0, 3, 1)
-                    store_user_in_database("Course","Leader","courseleader@hotmail.com",hashed_password,"courseLeader")
-                    store_tutors_in_database(0, 4, 1)
                     load_mock_data()
                     logger.info('Mock data Loaded')
     except Exception as e:
@@ -940,9 +987,9 @@ def load_mock_data():
     with open('mock_data.json', 'r') as file:
         mock_data = json.load(file)
     
-    insert_data(DBPool, 'users', mock_data['users'])
     insert_data(DBPool, 'areas', mock_data['areas'])
     insert_data(DBPool, 'expertises', mock_data['expertises'])
+    insert_data(DBPool, 'users', mock_data['users'])
     insert_data(DBPool, 'tutors', mock_data['tutors'])
     insert_data(DBPool, 'students', mock_data['students'])
     insert_data(DBPool, 'projects', mock_data['projects'])

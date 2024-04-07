@@ -92,6 +92,31 @@ def configure_routes(app):
             logging.exception("An error occurred during the login process:")
             return jsonify({'error': 'Failed to login'}), 500
 
+    @app.route('/changePassword', methods=['POST', 'OPTIONS'])
+    def change_password():
+        if request.method == 'OPTIONS':
+            response = make_response(jsonify({'status': 'OK'}), 200)
+            response.headers['Access-Control-Allow-Origin'] = 'http://localhost:8080'
+            response.headers['Access-Control-Allow-Methods'] = 'POST'
+            response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+            return _build_cors_preflight_response()
+
+        try:
+            data = request.get_json()
+            email = data.get('email')
+            password = data.get('password')
+            hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+            hashed_password = hashed_password.decode('utf8')
+            success, message = change_user_password(email, hashed_password)
+
+            if success:
+                return jsonify({'message': message}), 200
+            else:
+                return jsonify({'error': message}), 400
+        except Exception as e:
+            app.logger.error(f"Unexpected error while changing user type: {e}", exc_info=True)
+            return jsonify({'error': "An unexpected error occurred"}), 500
+        
     @app.route('/changeUserType', methods=['POST'])
     @token_required
     def change_user_type(current_user):
@@ -364,7 +389,24 @@ def configure_routes(app):
             return jsonify({'error': "An unexpected error occurred"}), 500
 
 
+    @app.route('/saveNewTutor', methods=['POST', 'OPTIONS'])
+    @token_required
+    def save_new_project(current_user):
+        if request.method == 'OPTIONS':
+            return _build_cors_preflight_response()
 
+        try:
+            data = request.get_json()
+            project = data.get('project')
+            success, message = update_new_tutor(project)
+
+            if success:
+                return jsonify({'message': message}), 200
+            else:
+                return jsonify({'error': message}), 400
+        except Exception as e:
+            app.logger.error(f"Unexpected error while changing user type: {e}", exc_info=True)
+            return jsonify({'error': "An unexpected error occurred"}), 500
 
 
 

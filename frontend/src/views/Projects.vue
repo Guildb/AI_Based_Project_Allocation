@@ -165,14 +165,7 @@
           class="flex flex-col sm:flex-row justify-center sm:space-x-2 space-y-2 sm:space-y-0"
         >
           <button
-            v-if="!editingProject && inspectingProject.student_id"
-            @click="editingProject = true"
-            class="w-full sm:w-auto bg-slate-700 hover:bg-blue-700 flex-1 justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-          >
-            Edit
-          </button>
-          <button
-            v-if="editingProject && !findTutor"
+            v-if="!editingProject && inspectingProject.student_id && !findTutor"
             @click="findTutors()"
             class="w-full sm:w-auto bg-slate-700 hover:bg-green-700 flex-1 justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
@@ -385,6 +378,7 @@ export default {
       this.editingProject = false;
       this.findTutor = false;
       this.inspectingProject = null;
+      this.newTutorId = null;
     },
     moreDetails(project) {
       this.inspectingProject = { ...project };
@@ -392,9 +386,10 @@ export default {
     },
     async findTutors() {
       this.findTutor = true;
+      this.editingProject = true;
+      this.newTutorId = this.inspectingProject.tutor_id;
       const token = localStorage.getItem("token");
       try {
-        console.log(this.inspectingProject);
         const response = await fetch(
           `${process.env.VUE_APP_BACKEND_URL}/findTutor`,
           {
@@ -416,12 +411,41 @@ export default {
 
         const data = await response.json();
         this.matched_tutors = data.match_percentages;
-        console.log(this.matched_tutors);
       } catch (error) {
         console.error("There was a problem editing the project:", error);
       }
     },
-    async saveProject() {},
+    async saveProject() {
+      if (this.newTutorId === this.inspectingProject.tutor_id) {
+        this.cancelEdit();
+      } else {
+        this.inspectingProject.tutor_id = this.newTutorId;
+        const token = localStorage.getItem("token");
+        try {
+          const response = await fetch(
+            `${process.env.VUE_APP_BACKEND_URL}/saveNewTutor`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({
+                project: this.inspectingProject,
+              }),
+            }
+          );
+
+          if (!response.ok) {
+            throw new Error("Network response was not ok");
+          }
+          this.cancelEdit();
+          this.fetchProjects();
+        } catch (error) {
+          console.error("There was a problem saving the project:", error);
+        }
+      }
+    },
   },
   computed: {
     filteredProjects() {

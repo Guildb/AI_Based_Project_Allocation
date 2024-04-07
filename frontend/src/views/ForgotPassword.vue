@@ -17,39 +17,17 @@
             alt="Back to Home"
             class="h-8 w-8"
           />
-          <!-- Adjust size with h-8 w-8 -->
         </router-link>
         <div>
           <h2
-            class="mt-8 text-center text-4xl font-extrabold text-slate-700 tracking-tight"
+            class="mt-8 text-center text-4xl font-extrabold text-slate-700 tracking-tight p-4"
           >
-            Create Account
+            Forgot Password
           </h2>
         </div>
-        <form class="mt-8 space-y-6" @submit.prevent="signup">
-          <input type="hidden" name="remember" value="true" />
+        <form class="mt-8 space-y-6" @submit.prevent="changePassword">
           <div class="rounded-md -space-y-px">
             <div>
-              <input
-                id="firstName"
-                name="firstName"
-                type="text"
-                v-model="firstName"
-                autocomplete="firstName"
-                required
-                class="uil-user appearance-none rounded-full relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="First Name"
-              />
-              <input
-                id="lastName"
-                name="lastName"
-                type="text"
-                v-model="lastName"
-                autocomplete="lastName"
-                required
-                class="appearance-none rounded-full relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Last Name"
-              />
               <input
                 id="email"
                 name="email"
@@ -89,16 +67,21 @@
               >
             </div>
           </div>
-
           <div
-            class="flex flex-col sm:flex-row items-center justify-center space-y-2 sm:space-y-0 sm:space-x-2"
+            class="flex flex-col sm:flex-row items-center justify-center space-y-2 sm:space-y-0 sm:space-x-2 p-4"
           >
             <button
               type="submit"
               class="w-full sm:w-auto bg-slate-700 hover:bg-blue-700 inline-flex items-center justify-center flex-1 py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
-              Create Account
+              Reset Password
             </button>
+            <router-link
+              to="/signup"
+              class="w-full sm:w-auto bg-slate-700 hover:bg-blue-700 inline-flex items-center justify-center flex-1 py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              Create Account
+            </router-link>
             <router-link
               to="/login"
               class="w-full sm:w-auto bg-slate-700 hover:bg-blue-700 inline-flex items-center justify-center flex-1 py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
@@ -119,8 +102,6 @@ export default {
     return {
       password: "",
       confirmPassword: "",
-      firstName: "",
-      lastName: "",
       email: "",
       isAnimated: false,
       passwordError: false,
@@ -139,7 +120,7 @@ export default {
         this.passwordError = false;
       }
     },
-    async signup() {
+    async changePassword() {
       if (this.passwordError) {
         alert("Please fix the errors before submitting.");
         return;
@@ -147,15 +128,13 @@ export default {
 
       try {
         const response = await fetch(
-          `${process.env.VUE_APP_BACKEND_URL}/signup`,
+          `${process.env.VUE_APP_BACKEND_URL}/changePassword`,
           {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              firstName: this.firstName,
-              lastName: this.lastName,
               email: this.email,
               password: this.password,
             }),
@@ -169,12 +148,11 @@ export default {
             data.error || `HTTP error! Status: ${response.status}`
           );
         }
-
-        alert("Signup successful! Redirecting to login...");
+        console.log("Password changed successful! Redirecting to login...");
         this.$router.push("/login");
       } catch (error) {
-        console.error("Error during the signup:", error);
-        alert(`Error during signup: ${error.message}`);
+        console.error("Error changing password:", error);
+        alert(`Error changing password: ${error.message}`);
       }
     },
   },

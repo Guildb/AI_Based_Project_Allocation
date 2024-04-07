@@ -547,7 +547,6 @@ export default {
         })
         .then((data) => {
           this.projects = data;
-          console.log(this.projects);
         })
         .catch((error) => {
           console.error(
@@ -651,7 +650,6 @@ export default {
     saveSNumber() {
       const newSNumber = this.newSNumber.trim();
       const newSareaId = this.newSareaId;
-      console.log("area id:", newSareaId);
       const token = localStorage.getItem("token");
       if (!newSNumber) {
         alert("Student Number is required");
