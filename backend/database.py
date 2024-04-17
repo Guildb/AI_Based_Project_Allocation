@@ -883,9 +883,8 @@ def update_project(project_id, student_id):
 
 def findTutors(project, tutors):
     match_percentages = []
-
     for tutor in tutors:
-        if tutor["area_id"] == project["area_id"]:
+        if tutor["area_id"] == project["area_id"] and tutor["slots"] > 0:
             # Calculate the intersection of tutor's expertises and project's required expertises
             matched_expertises = set(tutor["expertises"]).intersection(set(project["expertises"]))
             match_percentage = len(matched_expertises) / len(project["expertises"])

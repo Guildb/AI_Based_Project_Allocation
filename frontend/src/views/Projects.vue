@@ -7,7 +7,7 @@
     >
       <vue-good-table
         :columns="columns"
-        :rows="filteredProjects"
+        :rows="processedProjects"
         :pagination-options="{ enabled: true }"
         :search-options="{ enabled: true }"
         styleClass="vgt-table striped condensed"
@@ -18,16 +18,10 @@
             {{ props.row.name }}
           </span>
           <span v-else-if="props.column.field === 'studentName'">
-            {{
-              props.row.student_id
-                ? getStudentName(props.row.student_id)
-                : "No student"
-            }}
+            {{ props.row.studentName }}
           </span>
           <span v-else-if="props.column.field === 'tutorName'">
-            {{
-              props.row.tutor_id ? getTutorName(props.row.tutor_id) : "No Tutor"
-            }}
+            {{ props.row.tutorName }}
           </span>
           <span v-else-if="props.column.field === 'alocated'">
             {{ props.row.alocated ? "Alocated" : "Not Alocated" }}
@@ -220,7 +214,7 @@ export default {
         { label: "Project Name", field: "name" },
         { label: "Student Name", field: "studentName" },
         { label: "Tutor Name", field: "tutorName" },
-        { label: "Alocated", field: "alocated" },
+        { label: "Alocated", field: "alocated", sortable: false },
         {
           label: "Actions",
           field: "actions",
@@ -459,6 +453,19 @@ export default {
             project.area_id === 0
         );
       }
+    },
+    processedProjects() {
+      return this.filteredProjects.map((project) => ({
+        ...project,
+        studentName:
+          project.student_id === 0 || !project.student_id
+            ? "NaN"
+            : this.getStudentName(project.student_id),
+        tutorName:
+          project.tutor_id === 0 || !project.tutor_id
+            ? "NaN"
+            : this.getTutorName(project.tutor_id),
+      }));
     },
   },
   mounted() {

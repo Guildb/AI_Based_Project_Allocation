@@ -7,7 +7,7 @@
     >
       <vue-good-table
         :columns="columns"
-        :rows="filteredTutors"
+        :rows="processedTutors"
         :pagination-options="{ enabled: true }"
         :search-options="{ enabled: true }"
         styleClass="vgt-table striped condensed"
@@ -15,7 +15,7 @@
       >
         <template v-slot:table-row="props">
           <span v-if="props.column.field === 'fullName'">
-            {{ props.row.firstName }} {{ props.row.lastName }}
+            {{ props.row.fullName }}
           </span>
           <span v-else-if="props.column.field === 'email'">
             {{ props.row.email }}
@@ -33,16 +33,10 @@
             {{ props.row.slots }}
           </span>
           <span v-else-if="props.column.field === 'area'">
-            {{
-              props.row.area_id === 0 ? "NaN" : getAreaName(props.row.area_id)
-            }}
+            {{ props.row.areaName }}
           </span>
           <span v-else-if="props.column.field === 'expertises'">
-            {{
-              props.row.expertises.length === 0
-                ? "NaN"
-                : getExpertiseNames(props.row.expertises)
-            }}
+            {{ props.row.expertisesName }}
           </span>
           <span v-else-if="props.column.field === 'actions'">
             <button
@@ -181,8 +175,8 @@ export default {
         { label: "Email", field: "email" },
         { label: "Type", field: "type", tdClass: "text-center" },
         { label: "Slots", field: "slots" },
-        { label: "Area", field: "area" },
-        { label: "Expertises", field: "expertises" },
+        { label: "Area", field: "areaName" },
+        { label: "Expertises", field: "expertiseNames" },
         {
           label: "Actions",
           field: "actions",
@@ -339,6 +333,17 @@ export default {
             user.area_id === 0
         );
       }
+    },
+    processedTutors() {
+      return this.filteredTutors.map((tutor) => ({
+        ...tutor,
+        fullName: `${tutor.firstName} ${tutor.lastName}`,
+        areaName: tutor.area_id === 0 ? "NaN" : this.getAreaName(tutor.area_id),
+        expertiseNames:
+          tutor.expertises.length === 0
+            ? "NaN"
+            : this.getExpertiseNames(tutor.expertises),
+      }));
     },
   },
   mounted() {

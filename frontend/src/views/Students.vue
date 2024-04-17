@@ -7,7 +7,7 @@
     >
       <vue-good-table
         :columns="columns"
-        :rows="filteredStudents"
+        :rows="processStudents"
         :pagination-options="{ enabled: true }"
         :search-options="{ enabled: true }"
         styleClass="vgt-table striped condensed"
@@ -15,7 +15,7 @@
       >
         <template v-slot:table-row="props">
           <span v-if="props.column.field === 'fullName'">
-            {{ props.row.firstName }} {{ props.row.lastName }}
+            {{ props.row.fullName }}
           </span>
           <span v-else-if="props.column.field === 'email'">
             {{ props.row.email }}
@@ -262,6 +262,12 @@ export default {
             user.area_id === 0
         );
       }
+    },
+    processStudents() {
+      return this.filteredStudents.map((student) => ({
+        ...student,
+        fullName: `${student.firstName} ${student.lastName}`,
+      }));
     },
   },
 
