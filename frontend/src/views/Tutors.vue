@@ -95,7 +95,7 @@
         <div>
           Area:
           <select
-            v-model="editingUser.areaId"
+            v-model="editingUser.area_id"
             class="bg-gray-200 text-gray-700 py-1 px-2 rounded w-full"
           >
             <option v-for="area in areas" :key="area.id" :value="area.id">
@@ -174,7 +174,7 @@ export default {
         { label: "Name", field: "fullName" },
         { label: "Email", field: "email" },
         { label: "Type", field: "type", tdClass: "text-center" },
-        { label: "Slots", field: "slots" },
+        { label: "Slots", field: "slots", type: "number" },
         { label: "Area", field: "areaName" },
         { label: "Expertises", field: "expertiseNames" },
         {
@@ -256,6 +256,7 @@ export default {
     editUser(user) {
       this.editingUser = { ...user, originalType: user.type };
       this.showModal = true;
+      console.log(this.editingUser);
     },
     async saveUser() {
       const token = localStorage.getItem("token");
@@ -314,9 +315,9 @@ export default {
   computed: {
     filteredExpertises() {
       // If an area is selected, filter expertises by the selected areaId
-      if (this.editingUser.areaId) {
+      if (this.editingUser.area_id) {
         return this.expertises.filter(
-          (expertise) => expertise.area_id === this.editingUser.areaId
+          (expertise) => expertise.area_id === this.editingUser.area_id
         );
       }
       // If no area is selected, return all expertises

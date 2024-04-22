@@ -8,176 +8,214 @@
       "type": "admin"
     },
     {
-      "firstName": "Student",
-      "lastName": "Default",
+      "firstName": "Ezekiel",
+      "lastName": "Simpson",
       "email": "student@example.com",
       "password": "$2b$12$xCw0eAtgvKTB/X0fD/jIDOYZZ2sagejReofifvv3MoYoLIe7.BX9.",
       "type": "student"
     },
     {
-      "firstName": "Tutor",
-      "lastName": "Default",
+      "firstName": "Simon",
+      "lastName": "Lopez",
       "email": "tutor@example.com",
       "password": "$2b$12$xCw0eAtgvKTB/X0fD/jIDOYZZ2sagejReofifvv3MoYoLIe7.BX9.",
       "type": "tutor"
     },
     {
-      "firstName": "Course",
-      "lastName": "Leader",
+      "firstName": "Leandro",
+      "lastName": "Crosby",
       "email": "courseleader@example.com",
       "password": "$2b$12$xCw0eAtgvKTB/X0fD/jIDOYZZ2sagejReofifvv3MoYoLIe7.BX9.",
       "type": "courseLeader"
     },
     {
-      "firstName": "FirstName1",
-      "lastName": "LastName1",
+      "firstName": "Saige",
+      "lastName": "Fuentes",
       "email": "user1@example.com",
       "password": "$2b$12$xCw0eAtgvKTB/X0fD/jIDOYZZ2sagejReofifvv3MoYoLIe7.BX9.",
       "type": "tutor"
     },
     {
-      "firstName": "FirstName2",
-      "lastName": "LastName2",
+      "firstName": "Bowen",
+      "lastName": "Higgins",
       "email": "user2@example.com",
       "password": "$2b$12$xCw0eAtgvKTB/X0fD/jIDOYZZ2sagejReofifvv3MoYoLIe7.BX9.",
       "type": "tutor"
     },
     {
-      "firstName": "FirstName3",
-      "lastName": "LastName3",
+      "firstName": "Leighton",
+      "lastName": "Kramer",
       "email": "user3@example.com",
       "password": "$2b$12$xCw0eAtgvKTB/X0fD/jIDOYZZ2sagejReofifvv3MoYoLIe7.BX9.",
       "type": "courseLeader"
     },
     {
-      "firstName": "FirstName4",
-      "lastName": "LastName4",
+      "firstName": "Kylan",
+      "lastName": "Gentry",
       "email": "user4@example.com",
       "password": "$2b$12$xCw0eAtgvKTB/X0fD/jIDOYZZ2sagejReofifvv3MoYoLIe7.BX9.",
       "type": "tutor"
     },
     {
-      "firstName": "FirstName5",
-      "lastName": "LastName5",
+      "firstName": "Amelie",
+      "lastName": "Griffith",
       "email": "user5@example.com",
       "password": "$2b$12$xCw0eAtgvKTB/X0fD/jIDOYZZ2sagejReofifvv3MoYoLIe7.BX9.",
       "type": "tutor"
     },
     {
-      "firstName": "FirstName6",
-      "lastName": "LastName6",
+      "firstName": "Franklin",
+      "lastName": "Sierra",
       "email": "user6@example.com",
       "password": "$2b$12$xCw0eAtgvKTB/X0fD/jIDOYZZ2sagejReofifvv3MoYoLIe7.BX9.",
       "type": "courseLeader"
     },
     {
-      "firstName": "FirstName7",
-      "lastName": "LastName7",
+      "firstName": "Marceline",
+      "lastName": "Avila",
       "email": "user7@example.com",
       "password": "$2b$12$xCw0eAtgvKTB/X0fD/jIDOYZZ2sagejReofifvv3MoYoLIe7.BX9.",
       "type": "student"
     },
     {
-      "firstName": "FirstName8",
-      "lastName": "LastName8",
+      "firstName": "Jaylen",
+      "lastName": "Blackwell",
       "email": "user8@example.com",
       "password": "$2b$12$xCw0eAtgvKTB/X0fD/jIDOYZZ2sagejReofifvv3MoYoLIe7.BX9.",
       "type": "student"
     },
     {
-      "firstName": "FirstName9",
-      "lastName": "LastName9",
+      "firstName": "Calliope",
+      "lastName": "Singleton",
       "email": "user9@example.com",
       "password": "$2b$12$xCw0eAtgvKTB/X0fD/jIDOYZZ2sagejReofifvv3MoYoLIe7.BX9.",
       "type": "courseLeader"
     },
     {
-      "firstName": "FirstName10",
-      "lastName": "LastName10",
+      "firstName": "James",
+      "lastName": "Delgado",
       "email": "user10@example.com",
+      "password": "$2b$12$xCw0eAtgvKTB/X0fD/jIDOYZZ2sagejReofifvv3MoYoLIe7.BX9.",
+      "type": "student"
+    },
+    {
+      "firstName": "Mia",
+      "lastName": "Wang",
+      "email": "user11@example.com",
+      "password": "$2b$12$xCw0eAtgvKTB/X0fD/jIDOYZZ2sagejReofifvv3MoYoLIe7.BX9.",
+      "type": "student"
+    },
+    {
+      "firstName": "Eli",
+      "lastName": "Morris",
+      "email": "user12@example.com",
+      "password": "$2b$12$xCw0eAtgvKTB/X0fD/jIDOYZZ2sagejReofifvv3MoYoLIe7.BX9.",
+      "type": "student"
+    },
+    {
+      "firstName": "Zoe",
+      "lastName": "Smith",
+      "email": "user13@example.com",
+      "password": "$2b$12$xCw0eAtgvKTB/X0fD/jIDOYZZ2sagejReofifvv3MoYoLIe7.BX9.",
+      "type": "student"
+    },
+    {
+      "firstName": "Aiden",
+      "lastName": "Johnson",
+      "email": "user14@example.com",
       "password": "$2b$12$xCw0eAtgvKTB/X0fD/jIDOYZZ2sagejReofifvv3MoYoLIe7.BX9.",
       "type": "student"
     }
   ],
   "areas": [
     {
-      "name": "Area 1"
+      "name": "Computer Engineering"
     },
     {
-      "name": "Area 2"
+      "name": "Environmental Science"
     },
     {
-      "name": "Area 3"
+      "name": "Business Analytics"
     },
     {
-      "name": "Area 4"
+    "name": "Molecular Biology"
     },
     {
-      "name": "Area 5"
+    "name": "Cognitive Psychology"
     }
   ],
   "expertises": [
     {
-      "name": "Expertise 1",
-      "acronym": "EXP1",
+      "name": "Web Development",
+      "acronym": "WEBDEV",
       "area_id": 1
     },
     {
-      "name": "Expertise 2",
-      "acronym": "EXP2",
+      "name": "Mobile Development",
+      "acronym": "MOBDEV",
+      "area_id": 1
+    },
+    {
+      "name": "Machine Learning",
+      "acronym": "ML",
+      "area_id": 1
+    },
+    {
+      "name": "Artificial Intelligence",
+      "acronym": "AI",
+      "area_id": 1
+    },
+    {
+      "name": "Sustainability Studies",
+      "acronym": "SUST",
       "area_id": 2
     },
     {
-      "name": "Expertise 3",
-      "acronym": "EXP3",
+      "name": "Wildlife Conservation",
+      "acronym": "WILDCONS",
+      "area_id": 2
+    },
+    {
+      "name": "Data Mining",
+      "acronym": "DATAMIN",
       "area_id": 3
     },
     {
-      "name": "Expertise 4",
-      "acronym": "EXP4",
+      "name": "Predictive Analytics",
+      "acronym": "PREDANA",
+      "area_id": 3
+    },
+    {
+      "name": "Genomics",
+      "acronym": "GEN",
       "area_id": 4
     },
     {
-      "name": "Expertise 5",
-      "acronym": "EXP5",
+      "name": "Proteomics",
+      "acronym": "PROT",
+      "area_id": 4
+    },
+    {
+      "name": "Behavioral Neuroscience",
+      "acronym": "BEHNEURO",
       "area_id": 5
     },
     {
-      "name": "Expertise 6",
-      "acronym": "EXP6",
-      "area_id": 1
-    },
-    {
-      "name": "Expertise 7",
-      "acronym": "EXP7",
-      "area_id": 2
-    },
-    {
-      "name": "Expertise 8",
-      "acronym": "EXP8",
-      "area_id": 3
-    },
-    {
-      "name": "Expertise 9",
-      "acronym": "EXP9",
-      "area_id": 4
-    },
-    {
-      "name": "Expertise 10",
-      "acronym": "EXP10",
+      "name": "Cognitive Development",
+      "acronym": "COGDEV",
       "area_id": 5
     }
   ],
   "tutors": [
     {
-      "slots": 0,
+      "slots": 2,
       "user_id": 3,
       "area_id": 1
     },
     {
-      "slots": 0,
+      "slots": 6,
       "user_id": 4,
-      "area_id": 1
+      "area_id": 4
     },
     {
       "slots": 4,
@@ -197,7 +235,7 @@
     {
       "slots": 3,
       "user_id": 9,
-      "area_id": 4
+      "area_id": 1
     },
     {
       "slots": 3,
@@ -207,7 +245,7 @@
     {
       "slots": 10,
       "user_id": 10,
-      "area_id": 1
+      "area_id": 5
     },
     {
       "slots": 7,
@@ -230,172 +268,261 @@
       "student_number": "S009",
       "user_id": 14,
       "area_id": 3
+    },
+    {
+      "student_number": "S010",
+      "user_id": 15,
+      "area_id": 4
+    },
+    {
+      "student_number": "S011",
+      "user_id": 16,
+      "area_id": 5
+    },
+    {
+      "student_number": "S012",
+      "user_id": 17,
+      "area_id": 4
+    },
+    {
+      "student_number": "S013",
+      "user_id": 18,
+      "area_id": 4
+    },
+    {
+      "student_number": "S001",
+      "user_id": 2,
+      "area_id": 4
     }
   ],
   "projects": [
     {
-      "name": "Project 1",
-      "description": "Project description 1",
+      "name": "Automated Data Analysis",
+      "description": "Developing automated tools for data analysis in scientific research.",
       "student_id": 1,
       "tutor_id": 3,
       "area_id": 1,
       "alocated": true
     },
     {
-      "name": "Project 2",
-      "description": "Project description 2",
+      "name": "Urban Biodiversity",
+      "description": "Studying the impact of urban development on local wildlife populations.",
       "student_id": 2,
       "tutor_id": 4,
       "area_id": 2,
       "alocated": true
     },
     {
-      "name": "Project 3",
-      "description": "Project description 3",
+      "name": "Market Trend Prediction",
+      "description": "Using machine learning to predict market trends based on historical data.",
       "student_id": 3,
       "tutor_id": 5,
       "area_id": 3,
       "alocated": true
     },
     {
-      "name": "Project 4",
-      "description": "Project description 4",
-      "student_id": null,
-      "tutor_id": 6,
+      "name": "Gene Editing Techniques",
+      "description": "Exploring CRISPR and other gene editing techniques for medical applications.",
+      "student_id": 4,
+      "tutor_id": 2,
       "area_id": 4,
-      "alocated": false
+      "alocated": true
     },
     {
-      "name": "Project 5",
-      "description": "Project description 5",
-      "student_id": null,
+      "name": "Cognitive Biases in Decision Making",
+      "description": "Investigating how cognitive biases affect decision-making processes.",
+      "student_id": 5,
       "tutor_id": 7,
       "area_id": 5,
-      "alocated": false
+      "alocated": true
     },
     {
-      "name": "Project 6",
-      "description": "Project description 6",
+      "name": "Advanced Neural Networks",
+      "description": "Exploring new architectures for deep learning neural networks.",
+      "student_id": null,
+      "tutor_id": 1, 
+      "area_id": 1,
+      "allocated": false
+    },
+    {
+      "name": "Smart City Sustainability Models",
+      "description": "Developing models to improve sustainability in urban environments.",
+      "student_id": null,
+      "tutor_id": 4, 
+      "area_id": 2,
+      "allocated": false
+    },
+    {
+      "name": "Real-Time Data Analysis Tools",
+      "description": "Creating tools for real-time analysis in business environments.",
+      "student_id": null,
+      "tutor_id": 5, 
+      "area_id": 3,
+      "allocated": false
+    },
+    {
+      "name": "Protein Folding Simulation",
+      "description": "Simulating protein folding using computational biology techniques.",
+      "student_id": null,
+      "tutor_id": 2, 
+      "area_id": 4,
+      "allocated": false
+    },
+    {
+      "name": "Memory Recall Enhancement",
+      "description": "Studying techniques to enhance memory recall in humans.",
       "student_id": null,
       "tutor_id": 8,
+      "area_id": 5,
+      "allocated": false
+    },
+    {
+      "name": "AI for Personalized Education",
+      "description": "Developing AI systems to tailor educational content to individual learning styles.",
+      "student_id": null,
+      "tutor_id": 6,  
       "area_id": 1,
-      "alocated": false
+      "allocated": false
     },
     {
-      "name": "Project 7",
-      "description": "Project description 7",
+      "name": "Climate Change Impact Assessment",
+      "description": "Assessing the impact of climate change on marine biodiversity.",
       "student_id": null,
-      "tutor_id": 9,
+      "tutor_id": 4,  
       "area_id": 2,
-      "alocated": false
+      "allocated": false
     },
     {
-      "name": "Project 8",
-      "description": "Project description 8",
+      "name": "Advanced Cryptography Techniques",
+      "description": "Exploring advanced techniques in cryptography for securing digital transactions.",
       "student_id": null,
-      "tutor_id": 4,
-      "area_id": 2,
-      "alocated": false
+      "tutor_id":1,  
+      "area_id": 1,
+      "allocated": false
     },
     {
-      "name": "Project 9",
-      "description": "Project description 9",
+      "name": "Behavioral Economics Models",
+      "description": "Creating predictive models for consumer behavior using behavioral economics.",
       "student_id": null,
-      "tutor_id": 6,
-      "area_id": 4,
-      "alocated": false
-    },
-    {
-      "name": "Project 10",
-      "description": "Project description 10",
-      "student_id": null,
-      "tutor_id": 5,
+      "tutor_id": 5, 
       "area_id": 3,
-      "alocated": false
+      "allocated": false
+    },
+    {
+      "name": "Genetic Markers in Disease",
+      "description": "Identifying genetic markers associated with major diseases.",
+      "student_id": null,
+      "tutor_id": 2, 
+      "area_id": 4,
+      "allocated": false
     }
   ],
   "tutor_expertise": [
     {
-      "tutor_id": 3,
-      "expertise_id": 1
+      "tutor_id": 1,
+      "expertise_id": 3 
     },
     {
-      "tutor_id": 3,
-      "expertise_id": 6
+      "tutor_id": 1,
+      "expertise_id": 4 
     },
     {
-      "tutor_id": 4,
-      "expertise_id": 2
+      "tutor_id": 2,
+      "expertise_id": 9 
     },
     {
-      "tutor_id": 5,
-      "expertise_id": 3
+      "tutor_id": 2,
+      "expertise_id": 10 
     },
     {
-      "tutor_id": 5,
-      "expertise_id": 8
+      "tutor_id": 3, 
+      "expertise_id": 1 
     },
     {
-      "tutor_id": 6,
-      "expertise_id": 4
+      "tutor_id": 3,  
+      "expertise_id": 3 
     },
     {
-      "tutor_id": 7,
-      "expertise_id": 5
+      "tutor_id": 4,  
+      "expertise_id": 6  
     },
     {
-      "tutor_id": 7,
-      "expertise_id": 10
+      "tutor_id": 5, 
+      "expertise_id": 7 
     },
     {
-      "tutor_id": 8,
-      "expertise_id": 6
+      "tutor_id": 6,  
+      "expertise_id": 4  
     },
     {
-      "tutor_id": 9,
-      "expertise_id": 7
+      "tutor_id": 7, 
+      "expertise_id": 11  
+    },
+    {
+      "tutor_id": 8,  
+      "expertise_id": 12  
     }
   ],
   "project_expertise": [
     {
-      "project_id": 1,
-      "expertise_id": 1
+      "project_id": 1, 
+      "expertise_id": 1 
     },
     {
-      "project_id": 2,
-      "expertise_id": 2
+      "project_id": 2, 
+      "expertise_id": 6  
     },
     {
-      "project_id": 3,
-      "expertise_id": 3
+      "project_id": 3, 
+      "expertise_id": 7  
     },
     {
-      "project_id": 4,
-      "expertise_id": 4
+      "project_id": 4,  
+      "expertise_id": 9  
     },
     {
-      "project_id": 5,
-      "expertise_id": 5
+      "project_id": 5, 
+      "expertise_id": 12 
     },
     {
-      "project_id": 6,
-      "expertise_id": 6
+      "project_id": 6,  
+      "expertise_id": 4  
     },
     {
-      "project_id": 7,
-      "expertise_id": 7
+      "project_id": 7,  
+      "expertise_id": 5  
     },
     {
-      "project_id": 8,
-      "expertise_id": 2
+      "project_id": 8,  
+      "expertise_id": 7 
     },
     {
-      "project_id": 9,
-      "expertise_id": 9
+      "project_id": 9, 
+      "expertise_id": 9  
     },
     {
-      "project_id": 10,
-      "expertise_id": 8
+      "project_id": 10, 
+      "expertise_id": 11  
+    },
+    {
+      "project_id": 11,  
+      "expertise_id": 4  
+    },
+    {
+      "project_id": 12, 
+      "expertise_id": 6 
+    },
+    {
+      "project_id": 13,  
+      "expertise_id": 4  
+    },
+    {
+      "project_id": 14,  
+      "expertise_id": 8  
+    },
+    {
+      "project_id": 15,  
+      "expertise_id": 10  
     }
   ]
 }

@@ -244,7 +244,7 @@ def create_table_projects_if_not_exists():
             DBPool.get_instance().putconn(conn)
 
 
-#functions to stode data in database
+#functions to store data in database
 def store_user_in_database(firstName, lastName, email, hashed_password, typeIn):
     try:
         with DBPool.get_instance().getconn() as conn:
@@ -709,7 +709,7 @@ def update_user(user):
                 if not current_user_data:
                     raise ValueError("User not found.")
                 # Compare and update details if necessary
-                if current_user_data['slots'] != user.get('slots') or current_user_data['areaId'] != user.get('areaId'):
+                if current_user_data['slots'] != user.get('slots') or current_user_data['areaId'] != user.get('area_id'):
                     change_tutor_details(cur, user)
                 if current_user_data['type'] != user.get('type'):
                     # User type has changed.
@@ -741,7 +741,7 @@ def change_tutor_details(cur, user):
     logging.info("Changiong tutor details: %s", user['id'])
     try:
         cur.execute("UPDATE tutors SET slots = %s, area_id = %s WHERE id = %s", 
-                    (user['slots'], None if user['areaId'] == 0 else user['areaId'], user['tutor_id']))
+                    (user['slots'], None if user['area_id'] == 0 else user['area_id'], user['tutor_id']))
         affected_rows = cur.rowcount
         logging.info("%s rows updated in tutor details for user: %s", affected_rows, user['id'])
     except Exception as e:
@@ -823,6 +823,8 @@ def add_project(project):
             with conn.cursor() as cur:
                 conn.autocommit = False  # Disable autocommit for transaction control
                 logging.info("Transaction started for project: %s", project['name'])
+                
+                
 
                 project_id, success = store_projects_in_database(project['name'], project['description'], project['student_id'], project['tutor_id'], project['area_id'])
 
@@ -890,7 +892,7 @@ def findTutors(project, tutors):
             match_percentage = len(matched_expertises) / len(project["expertises"])
             
             # Append the match percentage along with tutor's id
-            match_percentages.append({"tutor_id": tutor["id"], "match_percentage": match_percentage})
+            match_percentages.append({"tutor_id": tutor["tutor_id"], "match_percentage": match_percentage})
         
     # Sort the list by match percentage in descending order
     match_percentages.sort(key=lambda x: x["match_percentage"], reverse=True)
@@ -953,6 +955,49 @@ def change_user_password(email, password):
     finally:
             DBPool.get_instance().putconn(conn)
 
+def change_Project(project):
+    logging.info("Starting changing project with project: %s", project)
+
+    try:
+        with DBPool.get_instance().getconn() as conn:
+            with conn.cursor() as cur:
+                conn.autocommit = False  # Disable autocommit for transaction control
+                logging.info("Transaction started for project: %s", project['name'])
+
+                cur.execute("""
+                    UPDATE "projects"
+                    SET name = %s, description = %s, student_id = %s, tutor_id = %s, area_id = %s, alocated = %s
+                    WHERE id = %s;
+                """, (project['name'], project['description'], project['student_id'], project['tutor_id'], project['area_id'], project['alocated'], project['id']))
+                
+                cur.execute("""
+                    DELETE FROM "project_expertise"
+                    WHERE project_id = %s;
+                """, (project['id'],))
+
+                for expertise_id in project['expertises']:
+                    cur.execute("""
+                        INSERT INTO "project_expertise" (project_id, expertise_id) VALUES (%s, %s)
+                    """, (project['id'], expertise_id))
+
+                conn.commit()
+                logging.info("Project updated and expertises managed successfully for: %s", project['name'])
+                return True, "Project updated successfully"
+    except ValueError as e:
+        logging.error("Failed to add expertise: %s, error: %s", project['name'], e)
+
+        conn.rollback()  
+        return False, str(e)  
+    except Exception as e:
+        logging.error("Failed to update user: %s, error: %s", project['name'], e)
+
+        conn.rollback() 
+        return False, f"Unexpected error: {e}"
+    finally:
+        DBPool.get_instance().putconn(conn)
+
+    
+    
 #Creat mock data to use the app
 def createDefaultData():
     try:

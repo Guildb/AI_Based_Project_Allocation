@@ -55,7 +55,7 @@
         <div v-if="availableProjects && !user.project" class="pt-4">
           <vue-good-table
             :columns="studentColumns"
-            :rows="filteredProjects"
+            :rows="processedProjects"
             :pagination-options="{ enabled: true }"
             :search-options="{ enabled: true }"
             styleClass="vgt-table striped condensed"
@@ -66,9 +66,7 @@
                 {{ props.row.name }}
               </span>
               <span v-else-if="props.column.field === 'tutorName'">
-                {{
-                  props.row.tutor_id ? getTutorName(props.row.tutor_id) : "NaN"
-                }}
+                {{ props.row.tutorName }}
               </span>
               <span v-else-if="props.column.field === 'alocated'">
                 {{ props.row.alocated ? "Alocated" : "Not Alocated" }}
@@ -94,7 +92,7 @@
         <div v-if="user.type !== 'student' && user.projects" class="pt-4">
           <vue-good-table
             :columns="columns"
-            :rows="user.projects"
+            :rows="processedProjects"
             :pagination-options="{ enabled: true }"
             :search-options="{ enabled: true }"
             styleClass="vgt-table striped condensed"
@@ -105,11 +103,7 @@
                 {{ props.row.name }}
               </span>
               <span v-else-if="props.column.field === 'studentName'">
-                {{
-                  props.row.student_id
-                    ? getStudentName(props.row.student_id)
-                    : "No student"
-                }}
+                {{ props.row.studentName }}
               </span>
               <span v-else-if="props.column.field === 'alocated'">
                 {{ props.row.alocated ? "Alocated" : "Not Alocated" }}
@@ -137,6 +131,12 @@
             <div class="max-w-4xl mx-auto">
               <div class="bg-white shadow-md rounded-lg overflow-hidden">
                 <h2 class="text-2xl font-semibold mb-4">Project Details</h2>
+                <button
+                  @click="editProject(user.project)"
+                  class="w-full sm:w-auto bg-slate-700 hover:bg-blue-700 flex-1 justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                >
+                  Edit Project
+                </button>
                 <div class="p-4 md:p-6 lg:p-8">
                   <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
@@ -384,10 +384,81 @@
 
         <div class="flex justify-center space-x-2">
           <button
+            v-if="this.user.type !== 'student'"
+            @click="editProject(inspectingProject)"
+            class="w-full sm:w-auto bg-slate-700 hover:bg-blue-700 flex-1 justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          >
+            Edit Project
+          </button>
+          <button
             @click="closeDetails()"
             class="w-full sm:w-auto bg-slate-700 hover:bg-red-700 flex-1 justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
             Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </transition>
+
+  <transition name="fade">
+    <div
+      v-if="changeDetails"
+      class="fixed inset-0 bg-gray-500 bg-opacity-75 flex justify-center items-center p-4"
+    >
+      <div class="bg-white p-4 sm:p-6 rounded-lg max-w-md w-full space-y-4">
+        <div class="text-lg font-semibold">Cahnge Details</div>
+
+        <!-- Example input for editing the user's name -->
+        <div>
+          <input
+            v-model="newProject.name"
+            placeholder="Project Name"
+            class="bg-gray-200 text-gray-700 py-1 px-2 rounded w-full"
+          />
+        </div>
+        <div>
+          <textarea
+            v-model="newProject.description"
+            placeholder="Project Description"
+            type="text"
+            class="bg-gray-200 text-gray-700 py-1 px-2 rounded w-full"
+          ></textarea>
+        </div>
+        <div class="max-h-48 overflow-y-auto border p-2">
+          <span class="text-lg font-semibold">Expertises</span>
+          <div>
+            <div
+              v-for="expertise in filteredExpertises"
+              :key="expertise.id"
+              class="flex items-center my-1"
+            >
+              <input
+                type="checkbox"
+                :value="expertise.id"
+                :id="'expertise-' + expertise.id"
+                v-model="newProject.expertises"
+                class="form-checkbox h-5 w-5 text-blue-600"
+              />
+              <label :for="'expertise-' + expertise.id" class="ml-2 text-sm">
+                {{ expertise.name }}
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex justify-center space-x-2">
+          <button
+            @click="saveChanges()"
+            class="w-full sm:w-auto bg-slate-700 hover:bg-green-700 flex-1 justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          >
+            Save
+          </button>
+          <button
+            @click="cancelEdit()"
+            class="w-full sm:w-auto bg-slate-700 hover:bg-red-700 inline-flex items-center justify-center flex-1 py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          >
+            Cancel
           </button>
         </div>
       </div>
@@ -413,6 +484,7 @@ export default {
       addSNumberModal: false,
       projectDetailsModal: false,
       availableProjects: false,
+      changeDetails: false,
       inspectingProject: null,
       newSNumber: "",
       newSareaId: null,
@@ -456,6 +528,11 @@ export default {
     };
   },
   methods: {
+    editProject(project) {
+      this.newProject = { ...project };
+      this.newProject.area_id = this.user.area_id;
+      this.changeDetails = true;
+    },
     moreDetails(project) {
       this.inspectingProject = { ...project };
       this.projectDetailsModal = true;
@@ -475,15 +552,11 @@ export default {
         this.newProject.tutor_id = this.user.tutor_id;
       }
       if (!this.newProject.name.trim()) {
-        alert("Projec name cannot be empty.");
+        alert("Project name cannot be empty.");
         return;
       }
       if (!this.newProject.description.trim()) {
-        alert("Projec description cannot be empty.");
-        return;
-      }
-      if (!this.newProject.area_id) {
-        alert("You need to select a area");
+        alert("Project description cannot be empty.");
         return;
       }
       if (!this.newProject.expertises.length > 0) {
@@ -497,7 +570,10 @@ export default {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ project: this.newProject }),
+        body: JSON.stringify({
+          project: this.newProject,
+          tutors: this.tutors,
+        }),
       })
         .then((response) => {
           if (!response.ok) {
@@ -515,6 +591,7 @@ export default {
     },
     cancelEdit() {
       this.addProjectModal = false;
+      this.changeDetails = false;
       this.newProject = {
         name: "",
         description: "",
@@ -741,6 +818,51 @@ export default {
           console.error("There was a problem selecting this project:", error);
         });
     },
+    saveChanges() {
+      if (this.user.type === "student") {
+        this.newProject.student_id = this.user.student_id;
+      } else {
+        this.newProject.tutor_id = this.user.tutor_id;
+      }
+      if (!this.newProject.name.trim()) {
+        alert("Project name cannot be empty.");
+        return;
+      }
+      if (!this.newProject.description.trim()) {
+        alert("Project description cannot be empty.");
+        return;
+      }
+      if (!this.newProject.expertises.length > 0) {
+        alert("You need to select the expertises");
+        return;
+      }
+      const token = localStorage.getItem("token");
+      fetch(`${process.env.VUE_APP_BACKEND_URL}/saveProjectChanges`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          project: this.newProject,
+          tutors: this.tutors,
+        }),
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Network response was not ok");
+          }
+          return response.json();
+        })
+        .then(() => {
+          this.cancelEdit();
+          this.getUser();
+          this.closeDetails();
+        })
+        .catch((error) => {
+          console.error("There was a problem editing the project:", error);
+        });
+    },
   },
   computed: {
     filteredExpertises() {
@@ -764,10 +886,30 @@ export default {
       // If no area is selected, return all tutors
       return this.tutors;
     },
-    filteredProjects() {
-      return this.projects.filter(
-        (project) => !project.alocated && project.area_id === this.user.area_id
-      );
+    processedProjects() {
+      if (this.user.type === "student") {
+        const filteredProjects = this.projects.filter(
+          (project) =>
+            !project.alocated &&
+            project.area_id === this.user.area_id &&
+            !project.student_id
+        );
+        return filteredProjects.map((project) => ({
+          ...project,
+          tutorName:
+            project.tutor_id === 0 || !project.tutor_id
+              ? "NaN"
+              : this.getTutorName(project.tutor_id),
+        }));
+      } else {
+        return this.user.projects.map((project) => ({
+          ...project,
+          studentName:
+            project.student_id === 0 || !project.student_id
+              ? "NaN"
+              : this.getStudentName(project.student_id),
+        }));
+      }
     },
   },
   mounted() {

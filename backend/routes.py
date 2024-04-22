@@ -242,6 +242,13 @@ def configure_routes(app):
         try:
             data = request.get_json()
             project = data.get('project')
+            
+            if project['student_id']:
+                tutors = data.get('tutors')
+                app.logger.error(f"tutors: {tutors}")
+                matchedTutors = findTutors(project, tutors)
+                project["tutor_id"] = matchedTutors[0]['tutor_id']
+                
             success, message = add_project(project)
 
             if success:
@@ -391,7 +398,7 @@ def configure_routes(app):
 
     @app.route('/saveNewTutor', methods=['POST', 'OPTIONS'])
     @token_required
-    def save_new_project(current_user):
+    def saveNewTutor(current_user):
         if request.method == 'OPTIONS':
             return _build_cors_preflight_response()
 
@@ -408,6 +415,31 @@ def configure_routes(app):
             app.logger.error(f"Unexpected error while changing user type: {e}", exc_info=True)
             return jsonify({'error': "An unexpected error occurred"}), 500
 
+    @app.route('/saveProjectChanges', methods=['POST', 'OPTIONS'])
+    @token_required
+    def saveProjectChanges(current_user):
+        if request.method == 'OPTIONS':
+            return _build_cors_preflight_response()
+        
+        try:
+            data = request.get_json()
+            project = data.get('project')
+            
+            if project['student_id']:
+                tutors = data.get('tutors')
+                app.logger.error(f"tutors: {tutors}")
+                matchedTutors = findTutors(project, tutors)
+                project["tutor_id"] = matchedTutors[0]['tutor_id']
+                
+            success, message = change_Project(project)
+
+            if success:
+                return jsonify({'message': message}), 200
+            else:
+                return jsonify({'error': message}), 500
+        except Exception as e:
+            app.logger.error(f"Unexpected error while adding project: {e}", exc_info=True)
+            return jsonify({'error': "An unexpected error occurred"}), 500
 
 
 

@@ -60,13 +60,18 @@
               v-model="newTutorId"
               class="bg-gray-200 text-gray-700 py-1 px-2 rounded w-full"
             >
+              {{
+                console.log(this.matched_tutors)
+              }}
+              {{
+                console.log(this.tutors)
+              }}
               <option
                 v-for="tutor in matched_tutors"
                 :key="tutor.tutor_id"
                 :value="tutor.tutor_id"
               >
-                {{ getTutorName(tutor.tutor_id) }} With:
-                {{ tutor.match_percentage * 100 }} %
+                {{ getTutorName(tutor, true) }}
               </option>
             </select>
           </div>
@@ -115,7 +120,7 @@
               <div
                 class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
               >
-                {{ this.getTutorName(inspectingProject.tutor_id) }}
+                {{ this.getTutorName(inspectingProject, false) }}
               </div>
             </div>
           </div>
@@ -214,7 +219,7 @@ export default {
         { label: "Project Name", field: "name" },
         { label: "Student Name", field: "studentName" },
         { label: "Tutor Name", field: "tutorName" },
-        { label: "Alocated", field: "alocated", sortable: false },
+        { label: "Alocated", field: "alocated" },
         {
           label: "Actions",
           field: "actions",
@@ -315,9 +320,19 @@ export default {
       );
       return sName ? `${sName.firstName} ${sName.lastName}` : "NaN";
     },
-    getTutorName(tutorId) {
-      const tName = this.tutors.find((tutor) => tutor.tutor_id === tutorId);
-      return tName ? `${tName.firstName} ${tName.lastName}` : "NaN";
+    getTutorName(inTutor, option) {
+      const tName = this.tutors.find(
+        (tutor) => tutor.tutor_id === inTutor.tutor_id
+      );
+      if (option) {
+        return tName
+          ? `${tName.firstName} ${tName.lastName} with ${
+              inTutor.match_percentage * 100
+            }%`
+          : "NaN";
+      } else {
+        return tName ? `${tName.firstName} ${tName.lastName}` : "NaN";
+      }
     },
     fetchProjects() {
       fetch(`${process.env.VUE_APP_BACKEND_URL}/projects`)
@@ -405,6 +420,7 @@ export default {
 
         const data = await response.json();
         this.matched_tutors = data.match_percentages;
+        console.log(this.matched_tutors);
       } catch (error) {
         console.error("There was a problem editing the project:", error);
       }
@@ -464,7 +480,7 @@ export default {
         tutorName:
           project.tutor_id === 0 || !project.tutor_id
             ? "NaN"
-            : this.getTutorName(project.tutor_id),
+            : this.getTutorName(project, false),
       }));
     },
   },

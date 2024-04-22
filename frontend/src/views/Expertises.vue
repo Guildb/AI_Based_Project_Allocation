@@ -7,7 +7,7 @@
     >
       <vue-good-table
         :columns="columns"
-        :rows="expertises"
+        :rows="filteredExpertises"
         :pagination-options="{ enabled: true }"
         :search-options="{ enabled: true }"
         styleClass="vgt-table striped condensed"
@@ -263,6 +263,13 @@ export default {
         .catch((error) => {
           console.error("There was a problem deleting the area:", error);
         });
+    },
+  },
+  computed: {
+    filteredExpertises() {
+      return this.expertises.filter(
+        (expertise) => expertise.area_id === this.user.area_id
+      );
     },
   },
   mounted() {
