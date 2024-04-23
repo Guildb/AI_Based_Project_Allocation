@@ -16,6 +16,7 @@ services:
     build: 
       context: ./backend
       dockerfile: Dockerfile
+    image: guildb/ai-based-project-allocation-flask:latest  # Add this line
     ports:  
       - "5000:5000"
     depends_on:
@@ -38,6 +39,8 @@ services:
     build: 
       context: ./frontend
       dockerfile: Dockerfile
+    image: guildb/ai-based-project-allocation-vuejs:latest  # Add this line
+
     ports:  
       - "8080:8080"
     depends_on:

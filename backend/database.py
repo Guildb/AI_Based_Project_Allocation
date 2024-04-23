@@ -8,7 +8,7 @@ import os
 import sys
 import bcrypt
 from datetime import datetime, timedelta
-from dotenv import load_dotenv
+from dotenv import load_dotenv 
 from flask import request, jsonify, make_response
 import json
 
@@ -255,17 +255,14 @@ def store_user_in_database(firstName, lastName, email, hashed_password, typeIn):
                         VALUES (%s, %s, %s, %s, %s)
                     """, (firstName, lastName, email, hashed_password, typeIn))
                     conn.commit()
-                    return None  # User stored successfully
+                    return None  
                 except psycopg2.errors.UniqueViolation as e:
-                    logger.error("Duplicate email address", exc_info=True)
                     return "Email address already exists.", 409
                 except psycopg2.Error as e:
-                    logger.error(f"Failed to insert user: {e}", exc_info=True)
-                    conn.rollback()  # Rollback the transaction on error
+                    conn.rollback()  
                     return "Failed to insert user.", 500
                 except Exception as e:
-                    logger.exception(f"Unexpected error: {e}")
-                    conn.rollback()  # Rollback the transaction on error
+                    conn.rollback()  
                     return "Unexpected error.", 500
     except psycopg2.Error as e:
         return f"Unable to add user: {e}", 500
@@ -285,16 +282,11 @@ def store_areas_in_database(nameIn):
                     print("Area stored successfully")
                     return "Area stored successfully.", 200
                 except psycopg2.errors.UniqueViolation as e:
-                    logger.error("Duplicated area", exc_info=True)
                     return "Failed to insert area: Area already exists.", 409
                 except psycopg2.Error as e:
-                    logger.error(f"Failed to insert area: {e}", exc_info=True)  # Log the error with stack trace
-                    # Rollback the transaction on error
                     conn.rollback() 
                     return f"Failed to insert area:", 500
                 except Exception as e:
-                    logger.exception(f"Unexpected error: {e}")  # Log unexpected errors with full context 
-                    # Rollback the transaction on error
                     conn.rollback() 
                     return f"Unexpected error: {e}", 500
     except psycopg2.Error as e:
@@ -306,27 +298,24 @@ def store_expertises_in_database(name, acronym, area_id):
     try:
         with DBPool.get_instance().getconn() as conn:
             with conn.cursor() as cur:
-                cur.execute("""
-                    INSERT INTO "expertises" (name, acronym, area_id)
-                    VALUES (%s, %s, %s)
-                """, (name, acronym, area_id))
-                conn.commit()
-                print("Expertise stored successfully")
-                # Success: Return None for error message and 201 for status code
-                return None, 201
+                try:
+                    cur.execute("""
+                        INSERT INTO "expertises" (name, acronym, area_id)
+                        VALUES (%s, %s, %s)
+                    """, (name, acronym, area_id))
+                    conn.commit()
+                    print("Expertise stored successfully")
+                    return None, 201
+                except psycopg2.Error as e:
+                    conn.rollback() 
+                    return f"Failed to insert expertise:", 500
+                except Exception as e:
+                    conn.rollback() 
+                    return f"Unexpected error: {e}", 500
     except psycopg2.Error as e:
-        logger.error(f"Failed to insert expertise: {e}", exc_info=True)
-        # Rollback the transaction on error
-        conn.rollback() 
-        # Error: Return error message and 500 for status code
-        return "Failed to insert expertise due to a database error.", 500
-    except Exception as e:
-        logger.exception(f"Unexpected error: {e}")
-        conn.rollback() 
-        # Error: Return error message and 500 for status code
-        return "Unexpected error occurred.", 500
+        return f"Unable to add expertise: {e}"
     finally:
-        DBPool.get_instance().putconn(conn)
+            DBPool.get_instance().putconn(conn)
 
 def store_tutors_in_database(slots, user_id, area_id):
     try:
@@ -340,15 +329,11 @@ def store_tutors_in_database(slots, user_id, area_id):
                     """, (slots, user_id, area_id))
                     conn.commit()
                     print("tutor stored successfully")
-                    return "tutor stored successfully."
+                    return "tutor stored successfully.", 200
                 except psycopg2.Error as e:
-                    logger.error(f"Failed to insert tutor: {e}", exc_info=True)  # Log the error with stack trace
-                    # Rollback the transaction on error
                     conn.rollback() 
                     return f"Failed to insert tutor:", 500
                 except Exception as e:
-                    logger.exception(f"Unexpected error: {e}")  # Log unexpected errors with full context 
-                    # Rollback the transaction on error
                     conn.rollback() 
                     return f"Unexpected error: {e}", 500
     except psycopg2.Error as e:
@@ -368,13 +353,9 @@ def store_students_in_database(student_number, user_id, area_id):
                     conn.commit()
                     return "student stored successfully.", 200
                 except psycopg2.Error as e:
-                    logger.error(f"Failed to insert student: {e}", exc_info=True)  # Log the error with stack trace
-                    # Rollback the transaction on error
                     conn.rollback() 
                     return f"Failed to insert student:", 500
                 except Exception as e:
-                    logger.exception(f"Unexpected error: {e}")  # Log unexpected errors with full context 
-                    # Rollback the transaction on error
                     conn.rollback() 
                     return f"Unexpected error: {e}", 500
     except psycopg2.Error as e:
@@ -393,15 +374,11 @@ def store_tutor_expertise_in_database(tutor_id, expertise_id):
                     """, (tutor_id, expertise_id))
                     conn.commit()
                     print("tutor_expertise stored successfully")
-                    return "tutor_expertise stored successfully."
+                    return "tutor_expertise stored successfully.", 200
                 except psycopg2.Error as e:
-                    logger.error(f"Failed to insert tutor_expertise: {e}", exc_info=True)  # Log the error with stack trace
-                    # Rollback the transaction on error
                     conn.rollback() 
                     return f"Failed to insert tutor_expertise:", 500
                 except Exception as e:
-                    logger.exception(f"Unexpected error: {e}")  # Log unexpected errors with full context 
-                    # Rollback the transaction on error
                     conn.rollback() 
                     return f"Unexpected error: {e}", 500
     except psycopg2.Error as e:
@@ -420,15 +397,11 @@ def store_project_expertise_in_database(project_id, expertise_id):
                     """, (project_id, expertise_id))
                     conn.commit()
                     print("project_expertise stored successfully")
-                    return "project_expertise stored successfully."
+                    return "project_expertise stored successfully.", 200
                 except psycopg2.Error as e:
-                    logger.error(f"Failed to insert project_expertise: {e}", exc_info=True)  # Log the error with stack trace
-                    # Rollback the transaction on error
                     conn.rollback() 
                     return f"Failed to insert project_expertise:", 500
                 except Exception as e:
-                    logger.exception(f"Unexpected error: {e}")  # Log unexpected errors with full context 
-                    # Rollback the transaction on error
                     conn.rollback() 
                     return f"Unexpected error: {e}", 500
     except psycopg2.Error as e:
@@ -454,13 +427,9 @@ def store_projects_in_database(name, description, student_id, tutor_id, area_id)
                     print("project stored successfully")
                     return project_id, 200
                 except psycopg2.Error as e:
-                    logger.error(f"Failed to insert project: {e}", exc_info=True)  # Log the error with stack trace
-                    # Rollback the transaction on error
                     conn.rollback() 
                     return f"Failed to insert project:", 500
                 except Exception as e:
-                    logger.exception(f"Unexpected error: {e}")  # Log unexpected errors with full context 
-                    # Rollback the transaction on error
                     conn.rollback() 
                     return f"Unexpected error: {e}", 500
     except psycopg2.Error as e:
@@ -568,18 +537,7 @@ def delete_project(project_id):
     except Exception as e:
         return False, f"Unexpected error: {e}"
 
-def delete_old_user(cur, oldType, id):
-    try:
-        cur.execute(f"DELETE FROM {oldType} WHERE user_id = %s", ( id,))
-    except Exception as e:
-        raise ValueError(f"Error deleting old user: {e}")
 
-def delete_old_expertises(cur, user):
-    logging.info("Deleting old expertises: %s", user['tutor_id'])
-    try:
-        cur.execute("DELETE FROM tutor_expertise WHERE tutor_id = %s", (user['tutor_id'],))
-    except Exception as e:
-        raise ValueError(f"Error deleting old expertises: {e}")
   
 
 #session functions
@@ -602,9 +560,8 @@ def validate_token(token):
         return None 
     
 def token_required(f):
-    @wraps(f)  # Preserve the metadata of the original function
+    @wraps(f)  
     def decorated(*args, **kwargs):
-        # Existing code for token validation
         token = None
         if request.method == 'OPTIONS':
             return _build_cors_preflight_response()
@@ -645,13 +602,9 @@ def change_user_type_in_database(cur, userId, newType):
                     return True, "User type updated successfully"
 
                 except psycopg2.Error as e:
-                    logger.error(f"Failed to change type: {e}", exc_info=True)  # Log the error with stack trace
-                    # Rollback the transaction on error
                     conn.rollback() 
                     return f"Failed to change type:", 500
                 except Exception as e:
-                    logger.exception(f"Unexpected error: {e}")  # Log unexpected errors with full context 
-                    # Rollback the transaction on error
                     conn.rollback() 
                     return f"Unexpected error: {e}", 500
     except psycopg2.Error as e:
@@ -664,7 +617,7 @@ def change_user_type_db(userId,newType):
         with DBPool.get_instance().getconn() as conn:
             with conn.cursor() as cur:
                 try:
-                    conn.autocommit = False  # Disable autocommit for transaction control
+                    conn.autocommit = False 
                     oldType = check_user_type(userId)
                         
                     if newType == "tutor" or newType == "courseLeader":
@@ -680,18 +633,18 @@ def change_user_type_db(userId,newType):
                         change_user_type_in_database(cur, userId, newType)
                         store_students_in_database(0, userId)
 
-                    conn.commit()  # Commit the transaction if all operations succeed
-                    return True, "User updated successfully"  # Indicate success
+                    conn.commit()  
+                    return True, "User updated successfully" 
                 except psycopg2.Error as e:
-                    conn.rollback()  # Rollback the transaction in case of a database error
-                    return False, f"Transaction failed: {e}"  # Indicate failure and return error message
+                    conn.rollback()  
+                    return False, f"Transaction failed: {e}" 
                 except Exception as e:
-                    conn.rollback()  # Rollback the transaction in case of a general error
-                    return False, f"Unexpected error: {e}"  # Indicate failure and return error message
+                    conn.rollback() 
+                    return False, f"Unexpected error: {e}"  
     except psycopg2.Error as e:
-        return False, f"Unable to create link: {e}"  # Return False for failure outside the inner try-except
+        return False, f"Unable to create link: {e}"  
     finally:
-        DBPool.get_instance().putconn(conn)  # Ensure the connection is always returned to the pool
+        DBPool.get_instance().putconn(conn) 
 
 def check_user_type(userId):
     with DBPool.get_instance().getconn() as conn:
@@ -704,7 +657,7 @@ def update_user(user):
     try:
         with DBPool.get_instance().getconn() as conn:
             with conn.cursor() as cur:
-                conn.autocommit = False  # Disable autocommit for transaction control
+                conn.autocommit = False 
                 current_user_data = fetch_current_user_data(cur, user['id'])
                 if not current_user_data:
                     raise ValueError("User not found.")
@@ -723,32 +676,40 @@ def update_user(user):
                         conn.commit()
                         change_user_type_db(user['id'], user['type'])
                 else:
-                    # If the user type hasn't changed but you still need to perform some operations.
                     delete_old_expertises(cur, user)
                     add_new_expertises(cur, user)
                     conn.commit()
             return True, "User updated successfully"
     except ValueError as e:
-        conn.rollback()  # Rollback transaction on specific subfunction error
-        return False, str(e)  # Return error message from subfunction
+        conn.rollback()  
+        return False, str(e)  
     except Exception as e:
-        conn.rollback()  # Rollback on any other error
+        conn.rollback()  
         return False, f"Unexpected error: {e}"
     finally:
         DBPool.get_instance().putconn(conn)
 
+def delete_old_user(cur, oldType, id):
+    try:
+        cur.execute(f"DELETE FROM {oldType} WHERE user_id = %s", ( id,))
+    except Exception as e:
+        raise ValueError(f"Error deleting old user: {e}")
+
+def delete_old_expertises(cur, user):
+    try:
+        cur.execute("DELETE FROM tutor_expertise WHERE tutor_id = %s", (user['tutor_id'],))
+    except Exception as e:
+        raise ValueError(f"Error deleting old expertises: {e}")
+
 def change_tutor_details(cur, user):
-    logging.info("Changiong tutor details: %s", user['id'])
     try:
         cur.execute("UPDATE tutors SET slots = %s, area_id = %s WHERE id = %s", 
                     (user['slots'], None if user['area_id'] == 0 else user['area_id'], user['tutor_id']))
         affected_rows = cur.rowcount
-        logging.info("%s rows updated in tutor details for user: %s", affected_rows, user['id'])
     except Exception as e:
         raise ValueError(f"Error updating tutor details: {e}")
     
 def add_new_expertises(cur, user):
-    logging.info("Adding new expertyises: %s", user['id'])
     try:
         for expertise_id in user['expertises']:
             cur.execute("INSERT INTO tutor_expertise (tutor_id, expertise_id) VALUES (%s, %s)", 
@@ -762,13 +723,11 @@ def get_user_credentials(email):
     with DBPool.get_instance().getconn() as conn:
         with conn.cursor() as cur:
             try:
-                # Fetch user id and password where the email matches
                 cur.execute('SELECT id, password, type FROM "users" WHERE email = %s', (email,))
                 result = cur.fetchone()
                 if result:
                     user_id, stored_password, user_type = result
                     print("Password verified for user ID: ", user_id, file=sys.stderr)
-                    # Ensure the stored password hash is encoded to bytes
                     encoded_password = stored_password.encode('utf-8') if isinstance(stored_password, str) else stored_password
                     return (user_id, encoded_password, user_type)
                 else:
@@ -777,7 +736,6 @@ def get_user_credentials(email):
                 print(f"An error occurred: {e}", file=sys.stderr)
                 return False, "An error occurred while fetching user credentials."
             finally:
-                # Make sure to release the connection back to the pool
                 DBPool.get_instance().putconn(conn)
 
 def fetch_current_user_data(cur, user_id):
@@ -787,7 +745,7 @@ def fetch_current_user_data(cur, user_id):
                     LEFT JOIN "tutors" t ON u.id = t.user_id
                     LEFT JOIN "areas" a ON t.area_id = a.id
                     WHERE u.id = %s
-                """,(user_id,))  # The parameters are passed here as a tuple
+                """,(user_id,)) 
     user = cur.fetchone()
     if user:
         cur.execute("""
@@ -816,41 +774,25 @@ def fetch_current_user_data(cur, user_id):
         return None
 
 def add_project(project):
-    logging.info("Starting adding project with project: %s", project)
 
     try:
         with DBPool.get_instance().getconn() as conn:
             with conn.cursor() as cur:
-                conn.autocommit = False  # Disable autocommit for transaction control
-                logging.info("Transaction started for project: %s", project['name'])
-                
-                
-
+                conn.autocommit = False    
                 project_id, success = store_projects_in_database(project['name'], project['description'], project['student_id'], project['tutor_id'], project['area_id'])
-
-                logging.info("Adding new expertises")
                 try:
                     for expertise_id in project['expertises']:
                         cur.execute("INSERT INTO project_expertise (project_id, expertise_id) VALUES (%s, %s)", 
                                     (project_id, expertise_id))
                 except Exception as e:
                     raise ValueError(f"Error adding new expertises: {e}")
-
-                    
-                conn.commit()
-                    
-                logging.info("Committing transaction for project: %s", project['name'])
-
+                conn.commit()                    
             return True, "project added successfully"
     except ValueError as e:
-        logging.error("Failed to add expertise: %s, error: %s", project['name'], e)
-
-        conn.rollback()  # Rollback transaction on specific subfunction error
-        return False, str(e)  # Return error message from subfunction
+        conn.rollback() 
+        return False, str(e)  
     except Exception as e:
-        logging.error("Failed to update user: %s, error: %s", project['name'], e)
-
-        conn.rollback()  # Rollback on any other error
+        conn.rollback()  
         return False, f"Unexpected error: {e}"
     finally:
         DBPool.get_instance().putconn(conn)
@@ -887,16 +829,10 @@ def findTutors(project, tutors):
     match_percentages = []
     for tutor in tutors:
         if tutor["area_id"] == project["area_id"] and tutor["slots"] > 0:
-            # Calculate the intersection of tutor's expertises and project's required expertises
             matched_expertises = set(tutor["expertises"]).intersection(set(project["expertises"]))
             match_percentage = len(matched_expertises) / len(project["expertises"])
-            
-            # Append the match percentage along with tutor's id
             match_percentages.append({"tutor_id": tutor["tutor_id"], "match_percentage": match_percentage})
-        
-    # Sort the list by match percentage in descending order
     match_percentages.sort(key=lambda x: x["match_percentage"], reverse=True)
-    logger.info(f"matched tutors: {match_percentages}")
     return match_percentages
 
 def update_new_tutor(project):
@@ -956,14 +892,10 @@ def change_user_password(email, password):
             DBPool.get_instance().putconn(conn)
 
 def change_Project(project):
-    logging.info("Starting changing project with project: %s", project)
-
     try:
         with DBPool.get_instance().getconn() as conn:
             with conn.cursor() as cur:
-                conn.autocommit = False  # Disable autocommit for transaction control
-                logging.info("Transaction started for project: %s", project['name'])
-
+                conn.autocommit = False  
                 cur.execute("""
                     UPDATE "projects"
                     SET name = %s, description = %s, student_id = %s, tutor_id = %s, area_id = %s, alocated = %s
@@ -981,16 +913,11 @@ def change_Project(project):
                     """, (project['id'], expertise_id))
 
                 conn.commit()
-                logging.info("Project updated and expertises managed successfully for: %s", project['name'])
                 return True, "Project updated successfully"
     except ValueError as e:
-        logging.error("Failed to add expertise: %s, error: %s", project['name'], e)
-
         conn.rollback()  
         return False, str(e)  
     except Exception as e:
-        logging.error("Failed to update user: %s, error: %s", project['name'], e)
-
         conn.rollback() 
         return False, f"Unexpected error: {e}"
     finally:
