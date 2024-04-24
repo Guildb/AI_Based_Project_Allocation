@@ -16,7 +16,7 @@ def configure_routes(app):
     
     def _build_cors_preflight_response():
         response = make_response()
-        response.headers['Access-Control-Allow-Origin'] = LINK
+        response.headers['Access-Control-Allow-Origin'] = "*"
         response.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
         response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
         return response
