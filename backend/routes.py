@@ -153,8 +153,6 @@ def configure_routes(app):
     @app.route('/addArea', methods=['POST', 'OPTIONS'])
     @token_required
     def addArea(current_user):
-        logging.info("adding Area")
-        logging.info(request.headers)
         if request.method == 'OPTIONS':
             return _build_cors_preflight_response()
         

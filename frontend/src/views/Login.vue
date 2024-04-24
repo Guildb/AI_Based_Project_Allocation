@@ -117,7 +117,7 @@ export default {
       if (this.remember) {
         newTime = 72;
       }
-      fetch(`${process.env.VUE_APP_BACKEND_URL}/login`, {
+      fetch(`http://aibasedprojectalocation.uksouth.cloudapp.azure.com:5000/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
