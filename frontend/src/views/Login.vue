@@ -112,8 +112,8 @@ export default {
     }, 100); // Start the animation shortly after the component mounts
   },
   methods: {
-    test(){
-      console.log("testing")
+    test() {
+      console.log("testing");
     },
     login() {
       let newTime = 12;
