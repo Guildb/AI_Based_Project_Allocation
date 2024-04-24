@@ -6,6 +6,9 @@ from app import *
 import sys
 import logging
 import bcrypt
+import dotenv
+
+env = 
 
 def configure_routes(app):
     logging.basicConfig(level=logging.DEBUG)
@@ -21,7 +24,7 @@ def configure_routes(app):
     def signup():
         if request.method == 'OPTIONS':
             response = make_response(jsonify({'status': 'OK'}), 200)
-            response.headers['Access-Control-Allow-Origin'] = 'http://localhost:8080'
+            response.headers['Access-Control-Allow-Origin'] = '*'
             response.headers['Access-Control-Allow-Methods'] = 'POST'
             response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
             return _build_cors_preflight_response()
@@ -55,7 +58,7 @@ def configure_routes(app):
         logging.info("Login route hit")
         if request.method == 'OPTIONS':
             response = make_response(jsonify({'status': 'OK'}), 200)
-            response.headers['Access-Control-Allow-Origin'] = 'http://localhost:8080'
+            response.headers['Access-Control-Allow-Origin'] = '*'
             response.headers['Access-Control-Allow-Methods'] = 'POST'
             response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
             return _build_cors_preflight_response()
@@ -96,7 +99,7 @@ def configure_routes(app):
     def change_password():
         if request.method == 'OPTIONS':
             response = make_response(jsonify({'status': 'OK'}), 200)
-            response.headers['Access-Control-Allow-Origin'] = 'http://localhost:8080'
+            response.headers['Access-Control-Allow-Origin'] = '*'
             response.headers['Access-Control-Allow-Methods'] = 'POST'
             response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
             return _build_cors_preflight_response()
