@@ -5,6 +5,7 @@
       class="w-full max-w-4xl bg-gray-200 bg-opacity-50 rounded-lg shadow-lg transition-opacity duration-700 ease-in p-1"
       :class="{ 'opacity-100': isAnimated }"
     >
+      <h1 class="text-4xl font-bold mb-4 text-slate-700 p-4">Areas</h1>
       <vue-good-table
         :columns="columns"
         :rows="processedTutors"
