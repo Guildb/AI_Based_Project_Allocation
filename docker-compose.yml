@@ -46,6 +46,25 @@ services:
     depends_on:
       - flask
     
+  nginx:
+    container_name: ai-based-project-allocation-nginx
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    
+    ports:
+      - "80:80"
+
+    depends_on:
+      - vuejs
+
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.config
+
+    environment:
+      - NGINX_HOST=ai-based-project-allocation-nginx
+      - NGINX_PORT=80
+
 
 
 volumes: 
