@@ -8,7 +8,7 @@ import logging
 import bcrypt
 import dotenv
 
-env = 
+
 
 def configure_routes(app):
     logging.basicConfig(level=logging.DEBUG)
