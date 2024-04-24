@@ -7,15 +7,16 @@ import sys
 import logging
 import bcrypt
 import dotenv
+import os
 
-
+LINK = os.getenv('LINK')
 
 def configure_routes(app):
     logging.basicConfig(level=logging.DEBUG)
     
     def _build_cors_preflight_response():
         response = make_response()
-        response.headers['Access-Control-Allow-Origin'] = '*'
+        response.headers['Access-Control-Allow-Origin'] = LINK
         response.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
         response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
         return response
@@ -23,12 +24,7 @@ def configure_routes(app):
     @app.route('/signup', methods=['POST', 'OPTIONS'])
     def signup():
         if request.method == 'OPTIONS':
-            response = make_response(jsonify({'status': 'OK'}), 200)
-            response.headers['Access-Control-Allow-Origin'] = '*'
-            response.headers['Access-Control-Allow-Methods'] = 'POST'
-            response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
             return _build_cors_preflight_response()
-        
         try:
             data = request.get_json()
             firstName = data.get('firstName')
@@ -53,14 +49,7 @@ def configure_routes(app):
 
     @app.route('/login', methods=['POST', 'OPTIONS'])
     def login():
-        
-
-        logging.info("Login route hit")
         if request.method == 'OPTIONS':
-            response = make_response(jsonify({'status': 'OK'}), 200)
-            response.headers['Access-Control-Allow-Origin'] = '*'
-            response.headers['Access-Control-Allow-Methods'] = 'POST'
-            response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
             return _build_cors_preflight_response()
         try:
             data = request.get_json()
@@ -98,12 +87,7 @@ def configure_routes(app):
     @app.route('/changePassword', methods=['POST', 'OPTIONS'])
     def change_password():
         if request.method == 'OPTIONS':
-            response = make_response(jsonify({'status': 'OK'}), 200)
-            response.headers['Access-Control-Allow-Origin'] = '*'
-            response.headers['Access-Control-Allow-Methods'] = 'POST'
-            response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
             return _build_cors_preflight_response()
-
         try:
             data = request.get_json()
             email = data.get('email')
