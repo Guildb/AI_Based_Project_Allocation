@@ -190,4 +190,9 @@ export default {
 nav {
   animation: slideDown 0.5s ease-out forwards;
 }
+@media (max-width: 849px) {
+  #navbar-sticky {
+    display: none; /* Hide by default when under 850px */
+  }
+}
 </style>
