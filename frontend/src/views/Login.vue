@@ -113,7 +113,6 @@ export default {
   },
   methods: {
     login() {
-      console.log("logingin")
       let newTime = 12;
       if (this.remember) {
         newTime = 72;
