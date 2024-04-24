@@ -144,7 +144,6 @@ export default {
         alert("Please fix the errors before submitting.");
         return;
       }
-      console.log(process.env.VUE_APP_BACKEND_URL);
       try {
         const response = await fetch(
           `${process.env.VUE_APP_BACKEND_URL}/signup`,
