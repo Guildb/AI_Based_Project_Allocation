@@ -21,7 +21,7 @@
             Login to your account
           </h2>
         </div>
-        <form class="mt-8 space-y-6" @submit.prevent="login">
+        <form class="mt-8 space-y-6" @submit.prevent="test">
           <input type="hidden" name="remember" value="true" />
           <div class="rounded-md shadow-sm -space-y-px">
             <div>
@@ -112,6 +112,9 @@ export default {
     }, 100); // Start the animation shortly after the component mounts
   },
   methods: {
+    test(){
+      console.log("testing")
+    },
     login() {
       let newTime = 12;
       if (this.remember) {
