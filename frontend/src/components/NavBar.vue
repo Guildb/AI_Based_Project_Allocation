@@ -197,7 +197,7 @@ nav {
 }
 @media (max-width: 849px) {
   .toggle-button {
-    display: block !important;  /* Important to override any other hidden classes */
+    display: block !important; /* Important to override any other hidden classes */
   }
 }
 </style>
