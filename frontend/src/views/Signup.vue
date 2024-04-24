@@ -169,8 +169,6 @@ export default {
             data.error || `HTTP error! Status: ${response.status}`
           );
         }
-
-        alert("Signup successful! Redirecting to login...");
         this.$router.push("/login");
       } catch (error) {
         console.error("Error during the signup:", error);
