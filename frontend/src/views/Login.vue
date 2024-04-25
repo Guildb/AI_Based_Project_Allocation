@@ -144,7 +144,7 @@ export default {
         })
         .catch((error) => {
           console.error("Login failed:", error.message);
-          alert(error.message); // Providing feedback to the user
+          alert("The details entered are invalid please try again!"); // Providing feedback to the user
         });
     },
   },
