@@ -268,9 +268,13 @@ export default {
   },
   computed: {
     filteredExpertises() {
-      return this.expertises.filter(
-        (expertise) => expertise.area_id === this.user.area_id
-      );
+      if (this.user.type === "admin") {
+        return this.expertises;
+      } else {
+        return this.expertises.filter(
+          (expertise) => expertise.area_id === this.user.area_id
+        );
+      }
     },
   },
   mounted() {
