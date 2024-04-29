@@ -1,6 +1,8 @@
 <template>
   <navbar />
-  <div class="min-h-screen flex justify-center items-center p-4 sm:p-24">
+  <div
+    class="min-h-screen flex justify-center items-center px-4 py-24 sm:px-24"
+  >
     <div
       class="w-full sm:w-3/4 bg-gray-200 bg-opacity-50 rounded-lg shadow-lg p-4 transition-opacity duration-700 ease-in opacity-0"
       :class="{ 'opacity-100': isAnimated }"
