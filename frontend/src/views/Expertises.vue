@@ -163,7 +163,7 @@ export default {
     addExpertise() {
       const expertiseName = this.newName.trim();
       const expertiseAcronym = this.newAcronym.trim();
-      const areaId = null;
+      let areaId = null;
       if (this.user.type !== "admin") {
         areaId = this.user.area_id;
       } else {
