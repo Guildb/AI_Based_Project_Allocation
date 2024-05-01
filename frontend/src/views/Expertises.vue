@@ -68,6 +68,7 @@
         />
 
         <select
+          v-if="user.type === 'admin'"
           v-model="newArea"
           class="bg-gray-200 text-gray-700 py-1 px-2 rounded"
         >
@@ -162,7 +163,12 @@ export default {
     addExpertise() {
       const expertiseName = this.newName.trim();
       const expertiseAcronym = this.newAcronym.trim();
-      const areaId = this.newArea;
+      const areaId = null;
+      if (this.user.type !== "admin") {
+        areaId = this.user.area_id;
+      } else {
+        areaId = this.newArea;
+      }
       const token = localStorage.getItem("token");
       if (!expertiseName) {
         alert("Expertise name is required.");
