@@ -1,8 +1,16 @@
 backend/__pycache__/
 
+backend/venv_test/
+
 backend/tests/__pycache__/
+
+backend/tests/unit/__pycache__/
+
+backend/tests/integration/__pycache__/
 
 node_modules/
 
 frontend/node_modules/
+
+
 #*#
