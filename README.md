@@ -34,6 +34,8 @@ cd AI_Based_Project_Allocation
 Using Docker
 This project is configured to run using Docker and Docker Compose for ease of setup and reliability across different environments:
 
+open Docker Desktop
+
 Build and Run the ContainersNavigate to the root directory of the project and run:
 ```bash
 docker-compose up --build
