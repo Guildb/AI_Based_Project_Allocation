@@ -1,17 +1,21 @@
 from sqlalchemy import create_engine, Column, Integer, String, Boolean, ForeignKey
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
-
+from sqlalchemy.orm import declarative_base
 Base = declarative_base()
+
+
 
 class User(Base):
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True)
     firstName = Column(String, nullable=False)
     lastName = Column(String, nullable=False)
-    email = Column(String, nullable=False)
+    email = Column(String, unique=True, nullable=False)
     password = Column(String, nullable=False)
     type = Column(String, nullable=False)
+    
+    students = relationship("Student", back_populates="user")
+    tutors = relationship("Tutor", back_populates="user")
     
 class Student(Base):
     __tablename__ = 'students'
@@ -21,7 +25,7 @@ class Student(Base):
     user_id = Column(Integer, ForeignKey('users.id'))
     
     area = relationship("Area")
-    user = relationship("User")
+    user = relationship("User", back_populates="students")
 
 class Tutor(Base):
     __tablename__ = 'tutors'
@@ -31,7 +35,7 @@ class Tutor(Base):
     user_id = Column(Integer, ForeignKey('users.id'))
     
     area = relationship("Area")
-    user = relationship("User")
+    user = relationship("User", back_populates="tutors")
 
 class Area(Base):
     __tablename__ = 'areas'
@@ -55,7 +59,7 @@ class Project(Base):
     student_id = Column(Integer, ForeignKey('students.id'))
     tutor_id = Column(Integer, ForeignKey('tutors.id'))
     area_id = Column(Integer, ForeignKey('areas.id'))
-    alocated = Column(Boolean, default=False, nullable=False)
+    alocated = Column(Boolean, default=False)
 
     student = relationship("Student")
     tutor = relationship("Tutor")

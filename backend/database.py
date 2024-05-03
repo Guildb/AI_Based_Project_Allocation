@@ -538,8 +538,6 @@ def delete_project(project_id):
         return False, f"Unexpected error: {e}"
 
 
-  
-
 #session functions
 def create_token(user_id, time, user_type):
     payload = {
@@ -582,6 +580,7 @@ def token_required(f):
         return f(current_user, *args, **kwargs)
 
     return decorated
+
 
 #functions to manipulate the data   
 def change_user_type_in_database(cur, userId, newType):
