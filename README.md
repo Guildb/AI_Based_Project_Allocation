@@ -1,3 +1,5 @@
+# I created a new branch as I forgot the main branch is configured to run on the deployed version so it won't work locally, I only updated the .env files to work locally
+
 # AI-Based Project Allocation System
 
 This repository contains the source code for an AI-based project allocation system, designed to connect students and tutors for project collaboration. This system allows users to create accounts, browse proposed projects by tutors, and manage their own project ideas.
